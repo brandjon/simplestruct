@@ -34,6 +34,11 @@ class ChecktypeCase(unittest.TestCase):
                 TypeError, 'Expected sequence of int; '
                            'got generator instead of sequence'):
             checktype_seq((i for i in range(3)), int)
+        
+        checktype_seq([5, 3, 5, 8], int)
+        with self.assertRaisesRegex(
+                TypeError, 'Duplicate element 5 at position 2'):
+            checktype_seq([5, 3, 5, 8], int, nodups=True)
 
 
 if __name__ == '__main__':

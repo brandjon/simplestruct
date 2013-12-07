@@ -22,8 +22,9 @@ def checktype(val, typ):
         got = strtype(val)
         raise TypeError('Expected {}; got {}'.format(exp, got))
 
-def checktype_seq(seq, typ):
+def checktype_seq(seq, typ, nodups=False):
     """Raise TypeError if seq is not a sequence of type typ.
+    Optionally require elements to be unique.
     
     As a special case to catch a common error, a string is not
     considered to be a sequence of strings but rather an atomic
@@ -54,3 +55,11 @@ def checktype_seq(seq, typ):
             raise TypeError('Expected sequence of {}; '
                             'got sequence with {} at position {}'.format(
                             exp, got, i))
+    
+    if nodups:
+        seen = []
+        for i, item in enumerate(seq):
+            if item in seen:
+                raise TypeError('Duplicate element {} at position {}'.format(
+                                repr(item), i))
+            seen.append(item)
