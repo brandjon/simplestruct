@@ -11,9 +11,14 @@ class ChecktypeCase(unittest.TestCase):
     def test_checktype(self):
         checktype('a', str)
         checktype(True, int)    # This is correct, bool subtypes int
+        checktype(5, (str, int))
+        
         with self.assertRaisesRegex(
                 TypeError, 'Expected int; got NoneType'):
             checktype(None, int)
+        with self.assertRaisesRegex(
+                TypeError, 'Expected str or int; got NoneType'):
+            checktype(None, (str, int))
     
     def test_checktype_seq(self):
         checktype_seq([], str)
