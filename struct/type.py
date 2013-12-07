@@ -4,16 +4,22 @@
 # time to type errors in places where I never had any intention of
 # allowing duck-typed alternative values.
 
+# A typelist is a tuple of types. A value satisfies a typelist if
+# it is an instance of any of the types. For convenience, typelists
+# may also be given as single types and as sequences besides tuples.
+
+# A type specification is a typelist along with a tuple of modifier
+# strings, which may include:
+#   'seq': sequence of elements satisfying the typelist
+#   'nodups': with 'seq', no duplicate elements allowed
+
 
 __all__ = [
     'checktype',
     'checktype_seq',
+    'check_spec',
 ]
 
-
-# A typelist is a tuple of types. A value satisfies a typelist if
-# it is an instance of any of the types. For convenience, typelists
-# may also be given as single types and as sequences besides tuples.
 
 def str_valtype(val):
     """Get a string describing the type of val."""
@@ -28,6 +34,13 @@ def normalize_tl(tl):
     else:
         return tuple(tl)
 
+def normalize_mods(mods):
+    """Make a modifier list out of space-delimited string."""
+    if isinstance(mods, str):
+        return tuple(mods.split())
+    else:
+        return tuple(mods)
+
 def str_tl(tl):
     """Get a string describing a typelist."""
     if len(tl) == 0:
@@ -38,6 +51,7 @@ def str_tl(tl):
         return tl[0].__name__ + ' or ' + tl[1].__name__
     else:
         return 'one of {' + ', '.join(t.__name__ for t in tl) + '}'
+
 
 def checktype(val, tl):
     """Raise TypeError if val does not satisfy tl."""
@@ -88,3 +102,15 @@ def checktype_seq(seq, tl, nodups=False):
                 raise TypeError('Duplicate element {} at position {}'.format(
                                 repr(item), i))
             seen.append(item)
+
+
+def check_spec(val, tl, mods):
+    """Raise TypeError if val does not match the type specification
+    given by tl and mods.
+    """
+    mods = normalize_mods(mods)
+    if 'seq' in mods:
+        nodups = 'nodups' in mods
+        checktype_seq(val, tl, nodups=nodups)
+    else:
+        checktype(val, tl)

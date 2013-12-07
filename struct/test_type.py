@@ -44,6 +44,12 @@ class ChecktypeCase(unittest.TestCase):
         with self.assertRaisesRegex(
                 TypeError, 'Duplicate element 5 at position 2'):
             checktype_seq([5, 3, 5, 8], int, nodups=True)
+    
+    def test_check_spec(self):
+        check_spec(3, int, [])
+        with self.assertRaisesRegex(
+                TypeError, 'Duplicate element 5 at position 2'):
+            check_spec([5, 3, 5, 8], int, 'seq nodups')
 
 
 if __name__ == '__main__':
