@@ -1,4 +1,4 @@
-"""Unit tests for the type module."""
+"""Unit tests for type.py."""
 
 
 import unittest
