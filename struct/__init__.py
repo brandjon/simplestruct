@@ -4,3 +4,5 @@ pretty-printing, equality testing, and hashing.
 """
 
 __version__ = '0.1.0'
+
+from .struct import *

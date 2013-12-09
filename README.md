@@ -1,5 +1,7 @@
-Project: struct
-Author: Jon Brandvein
+struct
+======
+
+(Requires Python 3.)
 
 This is a small utility for making it easier to write simple struct
 classes in Python, without having to write boilerplate code. Structs
@@ -23,11 +25,14 @@ This is a small toy project, so no backwards compatability guarantees
 are made.
 
 
-TODO:
-
+Features TODO:
 - allow structs to be instantiated with keyword arguments
 - add support for __slots__
 - support iteration of fields (like namedtuple)
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
+
+Packaging TODO:
+- make usage examples
+- fix up setup.py, make installable
