@@ -1,10 +1,10 @@
 from setuptools import setup
 
-import struct
+import simplestruct
 
 setup(
     name='SimpleStruct',
-    version=struct.__version__,
+    version=simplestruct.__version__,
     
     author='Jon Brandvein',
     license='MIT License',
