@@ -1,4 +1,4 @@
-from struct import Struct, Field
+from simplestruct import Struct, Field
 
 class PointA:
     def __init__(self, x, y):

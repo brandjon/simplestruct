@@ -3,7 +3,7 @@
 
 import unittest
 
-from struct.struct import *
+from simplestruct.struct import *
 
 
 class StructCase(unittest.TestCase):

@@ -10,7 +10,7 @@ __all__ = [
 
 from collections import OrderedDict
 
-from struct.type import check_spec, normalize_kind, normalize_mods
+from simplestruct.type import check_spec, normalize_kind, normalize_mods
 
 
 class Field:

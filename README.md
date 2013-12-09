@@ -1,5 +1,5 @@
-struct
-======
+SimpleStruct
+============
 
 (Requires Python 3.)
 

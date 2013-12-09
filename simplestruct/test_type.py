@@ -3,7 +3,7 @@
 
 import unittest
 
-from struct.type import *
+from simplestruct.type import *
 
 
 class ChecktypeCase(unittest.TestCase):
