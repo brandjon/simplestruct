@@ -1,3 +1,5 @@
+from setuptools import setup
+
 import struct
 
 setup(
@@ -6,5 +8,7 @@ setup(
     
     author='Jon Brandvein',
     license='MIT License',
-    description='A Python library for defining struct-like classes'
+    description='A Python library for defining struct-like classes',
+    
+    packages=['struct'],
 )
