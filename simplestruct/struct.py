@@ -29,6 +29,8 @@ class Field:
             an argument to the struct's constructor or consulted for
             equality/hashing
     
+    The 'seq' mod will additionally convert the value to a tuple.
+    
     All writes are type-checked according to the type spec. 
     Writing to a field will fail with AttributeError if the struct
     is immutable and has finished initializing.
@@ -57,6 +59,9 @@ class Field:
             raise AttributeError('Struct is immutable')
         
         check_spec(value, self.kind, self.mods)
+        
+        if 'seq' in self.mods:
+            value = tuple(value)
         
         inst.__dict__[self.name] = value
     

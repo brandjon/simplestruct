@@ -22,7 +22,7 @@ class StructCase(unittest.TestCase):
         
         # Instantiation.
         f = Foo([5])
-        self.assertEqual(f.bar, [5])
+        self.assertEqual(f.bar, (5,))
         
         # Type checking.
         with self.assertRaises(TypeError):
