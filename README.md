@@ -1,7 +1,7 @@
 SimpleStruct
 ============
 
-(Requires Python 3.)
+*(Requires Python 3)*
 
 This is a small utility for making it easier to write simple struct
 classes in Python, without having to write boilerplate code. Structs
@@ -25,8 +25,7 @@ This is a small toy project, so no backwards compatability guarantees
 are made.
 
 
-To use
-------
+### To use ###
 
 For the simplest case, just use
 
@@ -39,6 +38,27 @@ For the simplest case, just use
 to get a simple Point class. No need to define `__init__()`, `__str__()`,
 `__eq__()`, `__hash__()`, etc. See the examples/ directory for more.
 
+
+### Comparison to namedtuple ###
+
+The standard library's [namedtuple](http://docs.python.org/3/library/collections#collections.namedtuple)
+feature can generate classes similar to what this library produces.
+Specifically, namedtuple classes automatically get constructors, pretty-
+printing, equality, and hashing, as well as sequential access (so you can use
+decomposing assignment such as `x, y = mypoint`). They do *not* support type
+checks and mutability, nor can you define auxiliary attributes on the object
+since it is constructed all-at-once.
+
+Namedtuples are implemented by specializing and then `eval()`ing a source code
+template that describes the desired class. In contrast, SimpleStruct uses
+inheritance and metaclasses to implement all struct's behavior in a generic
+way. There is a performance penalty to this, since each operation results in
+more function calls. An application that requires top performance out of each
+struct operation should go with namedtuple if possible, especially because
+much of its functionality is provided by the built-in Python tuple type.
+
+
+### TODO ###
 
 Features TODO:
 - allow structs to be instantiated with keyword arguments
