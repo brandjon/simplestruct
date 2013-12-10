@@ -107,6 +107,9 @@ class Struct(metaclass=MetaStruct):
     By default, __new__() will initialize the non-derived fields.
     If immutable, fields may still be written to until __init__()
     (of the last subclass) returns.
+    
+    Subclasses are not required to call super().__init__() if this
+    is the only base class.
     """
     
     @property
