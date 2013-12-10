@@ -42,12 +42,12 @@ to get a simple Point class. No need to define `__init__()`, `__str__()`,
 
 Features TODO:
 - allow structs to be instantiated with keyword arguments
-- add support for __slots__
+- add support for `__slots__`
 - support iteration of fields (like namedtuple)
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
-- support registering custom eq/hash functions for certain types
+- picklability
 
 Packaging TODO:
 - make usage examples

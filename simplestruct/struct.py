@@ -9,8 +9,14 @@ __all__ = [
 
 
 from collections import OrderedDict
+from functools import reduce
 
 from simplestruct.type import check_spec, normalize_kind, normalize_mods
+
+
+def hash_seq(seq):
+    """Given a sequence of hash values, return a combined xor'd hash."""
+    return reduce(lambda x, y: x ^ y, seq, 0)
 
 
 class Field:
@@ -26,6 +32,10 @@ class Field:
     All writes are type-checked according to the type spec. 
     Writing to a field will fail with AttributeError if the struct
     is immutable and has finished initializing.
+    
+    To use custom equality/hashing semantics, subclass Field and
+    override eq() and hash(). Note that in the case of list-valued
+    fields, these functions are called element-wise.
     """
     
     # TODO: It would be a pretty sweet/evil metacircularity to define
@@ -49,6 +59,30 @@ class Field:
         check_spec(value, self.kind, self.mods)
         
         inst.__dict__[self.name] = value
+    
+    def _field_eq(self, val1, val2):
+        """Compare two field values for equality."""
+        if 'seq' in self.mods:
+            if len(val1) != len(val2):
+                return False
+            return all(self.eq(e1, e2) for e1, e2 in zip(val1, val2))
+        else:
+            return self.eq(val1, val2)
+    
+    def _field_hash(self, val):
+        """Hash a field value."""
+        if 'seq' in self.mods:
+            return hash_seq(self.hash(e) for e in val)
+        else:
+            return self.hash(val)
+    
+    def eq(self, val1, val2):
+        """Compare two values of this field's kind."""
+        return val1 == val2
+    
+    def hash(self, val):
+        """Hash a value of this field's kind."""
+        return hash(val)
 
 
 class MetaStruct(type):
@@ -143,26 +177,27 @@ class Struct(metaclass=MetaStruct):
         
         return inst
     
-    def fmt_helper(self, fmt):
+    def _fmt_helper(self, fmt):
         return '{}({})'.format(
             self.__class__.__name__,
             ', '.join('{}={}'.format(f.name, fmt(getattr(self, f.name)))
                       for f in self._primary_fields))
     
     def __str__(self):
-        return self.fmt_helper(str)
+        return self._fmt_helper(str)
     def __repr__(self):
-        return self.fmt_helper(repr)
+        return self._fmt_helper(repr)
     
     def __eq__(self, other):
         if not isinstance(self, other.__class__):
             return NotImplemented
-        return all(getattr(self, f.name) == getattr(other, f.name)
+        
+        return all(f._field_eq(getattr(self, f.name), getattr(other, f.name))
                    for f in self._primary_fields)
     
     def __neq__(self, other):
         return not (self == other)
     
     def __hash__(self):
-        return hash(tuple(getattr(self, f.name)
-                          for f in self._primary_fields))
+        return hash_seq(f._field_hash(getattr(self, f.name))
+                        for f in self._primary_fields)

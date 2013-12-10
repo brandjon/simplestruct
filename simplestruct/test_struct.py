@@ -22,7 +22,7 @@ class StructCase(unittest.TestCase):
         
         # Instantiation.
         f = Foo([5])
-        self.assertEquals(f.bar, [5])
+        self.assertEqual(f.bar, [5])
         
         # Type checking.
         with self.assertRaises(TypeError):
@@ -79,6 +79,28 @@ class StructCase(unittest.TestCase):
         self.assertNotEqual(f1, f3)
         self.assertEqual(hash(f1), hash(f2))
         # hash(f1) == hash(f3) is unlikely but valid.
+    
+    def testCustomEqHash(self):
+        class CustomField(Field):
+            def eq(self, val1, val2):
+                return val1 * val2 > 0
+            def hash(self, val):
+                return int(val) * 2
+        
+        class FooA(Struct):
+            bar = Field(float, 'seq')
+        class FooB(Struct):
+            bar = CustomField(float, 'seq')
+        
+        fa1 = FooA([5.0])
+        fa2 = FooA([6.0])
+        fb1 = FooB([5.0])
+        fb2 = FooB([6.0])
+        
+        self.assertNotEqual(fa1, fa2)
+        self.assertNotEqual(hash(fa1), 10)
+        self.assertEqual(fb1, fb2)
+        self.assertEqual(hash(fb1), 10)
 
 
 if __name__ == '__main__':
