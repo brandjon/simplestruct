@@ -68,6 +68,10 @@ Features TODO:
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
 - picklability
+- possibly make it so the same Field object can be used to declare multiple
+  structs, and the metaclass replaces this Field object with a copy so they
+  can have different "name" attributes. This would allow defining a reusable
+  kind of field without repeating kind/mods each time.
 
 Packaging TODO:
 - make usage examples
