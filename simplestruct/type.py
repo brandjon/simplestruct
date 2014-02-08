@@ -91,7 +91,7 @@ def checktype_seq(seq, kind, nodups=False):
     if isinstance(seq, str):
         raise TypeError('Expected sequence of {}; got single str '
                         '(strings do not count as character '
-                        'sequences'.format(exp))
+                        'sequences)'.format(exp))
         
     for i, item in enumerate(iterator):
         if not isinstance(item, kind):

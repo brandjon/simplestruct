@@ -11,7 +11,8 @@ __all__ = [
 from collections import OrderedDict
 from functools import reduce
 
-from simplestruct.type import check_spec, normalize_kind, normalize_mods
+from simplestruct.type import (str_valtype, check_spec,
+                               normalize_kind, normalize_mods)
 
 
 def hash_seq(seq):
@@ -98,8 +99,8 @@ class MetaStruct(type):
     _fields to be a tuple of the Field descriptors, in declaration
     order.
     
-    Upon instantiation of a Struct subtype, set its _initialized
-    attribute to True after __init__() returns.
+    Upon instantiation of a Struct subtype, set the instance's
+    _initialized attribute to True after __init__() returns.
     """
     
     @property
@@ -204,5 +205,11 @@ class Struct(metaclass=MetaStruct):
         return not (self == other)
     
     def __hash__(self):
+        if not self._immutable:
+            raise TypeError('Cannot hash mutable Struct {}'.format(
+                            str_valtype(self)))
+        if not self._initialized:
+            raise TypeError('Cannot hash uninitialized Struct {}'.format(
+                            str_valtype(self)))
         return hash_seq(f._field_hash(getattr(self, f.name))
                         for f in self._primary_fields)

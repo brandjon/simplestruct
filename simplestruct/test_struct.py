@@ -79,6 +79,23 @@ class StructCase(unittest.TestCase):
         self.assertNotEqual(f1, f3)
         self.assertEqual(hash(f1), hash(f2))
         # hash(f1) == hash(f3) is unlikely but valid.
+        
+        # No hashing for mutable structs.
+        class Foo(Struct):
+            _immutable = False
+            bar = Field(int)
+        f = Foo(5)
+        with self.assertRaises(TypeError):
+            hash(f)
+        
+        # Or for structs that aren't yet constructed.
+        class Foo(Struct):
+            bar = Field(int)
+            def __init__(self, bar):
+                hash(self)
+            hash(self)
+        with self.assertRaises(TypeError):
+            f = Foo(5)
     
     def testCustomEqHash(self):
         class CustomField(Field):
