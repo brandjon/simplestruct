@@ -2,6 +2,7 @@
 
 
 import unittest
+from collections import OrderedDict
 
 from simplestruct.struct import *
 
@@ -118,6 +119,16 @@ class StructCase(unittest.TestCase):
         self.assertNotEqual(hash(fa1), 10)
         self.assertEqual(fb1, fb2)
         self.assertEqual(hash(fb1), 10)
+    
+    def testDict(self):
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+            c = Field()
+        f = Foo(1, 2, 3)
+        d = f._asdict()
+        exp_d = OrderedDict([('a', 1), ('b', 2), ('c', 3)])
+        self.assertEqual(d, exp_d)
 
 
 if __name__ == '__main__':

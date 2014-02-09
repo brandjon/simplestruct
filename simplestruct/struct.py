@@ -213,3 +213,8 @@ class Struct(metaclass=MetaStruct):
                             str_valtype(self)))
         return hash_seq(f._field_hash(getattr(self, f.name))
                         for f in self._primary_fields)
+    
+    def _asdict(self):
+        """Return an OrderedDict of the fields."""
+        return OrderedDict((f.name, getattr(self, f.name))
+                           for f in self._primary_fields)
