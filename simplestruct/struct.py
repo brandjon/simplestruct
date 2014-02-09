@@ -217,3 +217,12 @@ class Struct(metaclass=MetaStruct):
         """Return an OrderedDict of the fields."""
         return OrderedDict((f.name, getattr(self, f.name))
                            for f in self._primary_fields)
+    
+    def _replace(self, **kargs):
+        """Return a copy of this struct with the same fields except
+        with the changes specified by kargs.
+        """
+        fields = {f.name: getattr(self, f.name)
+                  for f in self._primary_fields}
+        fields.update(kargs)
+        return type(self)(**fields)

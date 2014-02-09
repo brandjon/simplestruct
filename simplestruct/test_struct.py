@@ -138,6 +138,16 @@ class StructCase(unittest.TestCase):
         d = f._asdict()
         exp_d = OrderedDict([('a', 1), ('b', 2), ('c', 3)])
         self.assertEqual(d, exp_d)
+    
+    def testReplace(self):
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+            c = Field()
+        f1 = Foo(1, 2, 3)
+        f2 = f1._replace(b=4)
+        f3 = Foo(1, 4, 3)
+        self.assertEqual(f2, f3)
 
 
 if __name__ == '__main__':
