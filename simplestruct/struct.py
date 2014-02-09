@@ -10,6 +10,7 @@ __all__ = [
 
 from collections import OrderedDict
 from functools import reduce
+from inspect import Signature, Parameter
 
 from simplestruct.type import (str_valtype, check_spec,
                                normalize_kind, normalize_mods)
@@ -129,6 +130,10 @@ class MetaStruct(type):
         
         cls._struct = tuple(fields)
         
+        cls._signature = Signature(
+            parameters=[Parameter(f.name, Parameter.POSITIONAL_OR_KEYWORD)
+                        for f in cls._primary_fields])
+        
         return cls
     
     # Mark the class as _initialized after construction.
@@ -167,19 +172,13 @@ class Struct(metaclass=MetaStruct):
     # We expect there to be one constructor argument for each
     # non-derived field (i.e. a field without the '!' modifier),
     # in field declaration order.
-    def __new__(cls, *args):
+    def __new__(cls, *args, **kargs):
         inst = super().__new__(cls)
         inst._initialized = False
         
-        pfields = cls._primary_fields
-        
-        if not len(args) == len(pfields):
-            raise ValueError('{} expects {} args, got {}'.format(
-                             cls.__name__, len(pfields), len(args)))
-        
-        # TODO: better error message here if typecheck fails
-        for f, arg in zip(pfields, args):
-            setattr(inst, f.name, arg)
+        boundargs = cls._signature.bind(*args, **kargs)
+        for f in cls._primary_fields:
+            setattr(inst, f.name, boundargs.arguments[f.name])
         
         return inst
     

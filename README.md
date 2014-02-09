@@ -61,7 +61,6 @@ much of its functionality is provided by the built-in Python tuple type.
 ### TODO ###
 
 Features TODO:
-- allow structs to be instantiated with keyword arguments
 - add support for `__slots__`
 - support iteration of fields (like namedtuple)
 - make exceptions appear to be raised from the stack frame of user code

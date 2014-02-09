@@ -41,6 +41,15 @@ class StructCase(unittest.TestCase):
         f = Foo(5)
         self.assertEqual(f.bar, 5)
         
+        # Construction by keyword.
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+            c = Field()
+        f1 = Foo(1, b=2, **{'c': 3})
+        f2 = Foo(1, 2, 3)
+        self.assertEqual(f1, f2)
+        
         # Mutability.
         class Foo(Struct):
             _immutable = False
