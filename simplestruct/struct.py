@@ -46,7 +46,7 @@ class Field:
     
     # The attribute "name" is assigned by MetaStruct.
     
-    def __init__(self, kind, mods=()):
+    def __init__(self, kind=None, mods=()):
         self.kind = normalize_kind(kind)
         self.mods = normalize_mods(mods)
     
@@ -96,7 +96,7 @@ class MetaStruct(type):
     """Metaclass for Structs.
     
     Upon class definition (of a new Struct subtype), set class attribute
-    _fields to be a tuple of the Field descriptors, in declaration
+    _struct to be a tuple of the Field descriptors, in declaration
     order.
     
     Upon instantiation of a Struct subtype, set the instance's
@@ -108,14 +108,14 @@ class MetaStruct(type):
         """Non-derived fields, i.e. fields that don't have a '!'
         modified.
         """
-        return [f for f in cls._fields if '!' not in f.mods]
+        return [f for f in cls._struct if '!' not in f.mods]
     
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
     def __prepare__(mcls, name, bases, **kwds):
         return OrderedDict()
     
-    # Construct the _fields attribute on the new class.
+    # Construct the _struct attribute on the new class.
     def __new__(mcls, clsname, bases, namespace, **kwds):
         fields = []
         for fname, f in namespace.copy().items():
@@ -127,7 +127,7 @@ class MetaStruct(type):
         
         cls = super().__new__(mcls, clsname, bases, dict(namespace), **kwds)
         
-        cls._fields = tuple(fields)
+        cls._struct = tuple(fields)
         
         return cls
     
