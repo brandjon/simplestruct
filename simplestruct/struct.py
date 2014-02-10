@@ -113,11 +113,11 @@ class MetaStruct(type):
     
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
-    def __prepare__(mcls, name, bases, **kwds):
+    def __prepare__(mcls, name, bases, **kargs):
         return OrderedDict()
     
     # Construct the _struct attribute on the new class.
-    def __new__(mcls, clsname, bases, namespace, **kwds):
+    def __new__(mcls, clsname, bases, namespace, **kargs):
         fields = []
         for fname, f in namespace.copy().items():
             if not isinstance(f, Field):
@@ -126,7 +126,7 @@ class MetaStruct(type):
             f.name = fname
             fields.append(f)
         
-        cls = super().__new__(mcls, clsname, bases, dict(namespace), **kwds)
+        cls = super().__new__(mcls, clsname, bases, dict(namespace), **kargs)
         
         cls._struct = tuple(fields)
         
