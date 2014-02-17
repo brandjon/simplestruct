@@ -3,8 +3,15 @@
 
 import unittest
 from collections import OrderedDict
+import pickle
+import copy
 
 from simplestruct.struct import *
+
+
+# Pickled types must be defined at module level.
+class PickleFoo(Struct):
+    a = Field()
 
 
 class StructCase(unittest.TestCase):
@@ -148,6 +155,15 @@ class StructCase(unittest.TestCase):
         f2 = f1._replace(b=4)
         f3 = Foo(1, 4, 3)
         self.assertEqual(f2, f3)
+    
+    def testPickleability(self):
+        f1 = PickleFoo(1)
+        buf = pickle.dumps(f1)
+        f2 = pickle.loads(buf)
+        self.assertEqual(f2, f1)
+        
+        f3 = copy.deepcopy(f1)
+        self.assertEqual(f3, f1)
 
 
 if __name__ == '__main__':

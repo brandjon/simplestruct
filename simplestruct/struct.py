@@ -213,6 +213,14 @@ class Struct(metaclass=MetaStruct):
         return hash_seq(f._field_hash(getattr(self, f.name))
                         for f in self._primary_fields)
     
+    def __reduce_ex__(self, protocol):
+        # We use __reduce_ex__() rather than __getnewargs__() so that
+        # the metaclass's __call__() will still run. This is needed to
+        # trigger the user-defined __init__() (which may compute
+        # derived field values) and to set _immutable to false.
+        return (self.__class__, tuple(getattr(self, f.name)
+                                      for f in self._primary_fields))
+    
     def _asdict(self):
         """Return an OrderedDict of the fields."""
         return OrderedDict((f.name, getattr(self, f.name))

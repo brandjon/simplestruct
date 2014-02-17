@@ -66,7 +66,6 @@ Features TODO:
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
-- picklability
 - possibly make it so the same Field object can be used to declare multiple
   structs, and the metaclass replaces this Field object with a copy so they
   can have different "name" attributes. This would allow defining a reusable
