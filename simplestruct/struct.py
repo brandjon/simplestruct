@@ -166,9 +166,6 @@ class Struct(metaclass=MetaStruct):
     construction. Override with False in subclass to allow.
     """
     
-    # TODO: Allow keyword arguments to constructor.
-    # Might be implemented using inspect.Signature.
-    
     # We expect there to be one constructor argument for each
     # non-derived field (i.e. a field without the '!' modifier),
     # in field declaration order.
@@ -176,9 +173,12 @@ class Struct(metaclass=MetaStruct):
         inst = super().__new__(cls)
         inst._initialized = False
         
-        boundargs = cls._signature.bind(*args, **kargs)
-        for f in cls._primary_fields:
-            setattr(inst, f.name, boundargs.arguments[f.name])
+        try:
+            boundargs = cls._signature.bind(*args, **kargs)
+            for f in cls._primary_fields:
+                setattr(inst, f.name, boundargs.arguments[f.name])
+        except TypeError as exc:
+            raise TypeError('Error constructing ' + cls.__name__) from exc
         
         return inst
     
