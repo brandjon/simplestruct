@@ -21,6 +21,12 @@ class UtilCase(unittest.TestCase):
         exp_text2 = ''
         
         self.assertEqual(text2, exp_text2)
+    
+    def testFrozendict(self):
+        d = frozendict({1:2, 3:4})
+        with self.assertRaises(TypeError):
+            d[3] = 5
+        hash(d)
 
 
 if __name__ == '__main__':

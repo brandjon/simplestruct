@@ -5,7 +5,12 @@ simplestruct, but by other projects that depend on simplestruct.
 
 __all__ = [
     'trim',
+    'frozendict',
 ]
+
+
+from collections import Mapping
+from functools import reduce
 
 
 def trim(text):
@@ -26,3 +31,27 @@ def trim(text):
             lines = lines[ : -1]
     
     return dedent('\n'.join(lines))
+
+
+# Inspired by a Stack Overflow answer by Mike Graham.
+# http://stackoverflow.com/questions/2703599/what-would-be-a-frozen-dict
+
+class frozendict(Mapping):
+    
+    """Analogous to frozenset."""
+    
+    def __init__(self, *args, **kargs):
+        self.d = dict(*args, **kargs)
+        self.hash = reduce(lambda a, b: a ^ hash(b), self.items(), 0)
+    
+    def __iter__(self):
+        return iter(self.d)
+    
+    def __len__(self):
+        return len(self.d)
+    
+    def __getitem__(self, key):
+        return self.d[key]
+    
+    def __hash__(self):
+        return self.hash
