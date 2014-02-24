@@ -27,6 +27,11 @@ class UtilCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             d[3] = 5
         hash(d)
+    
+    def testFreeze(self):
+        val = make_frozen([{1: 2}, {3}])
+        exp_val = (frozendict({1: 2}), frozenset({3}))
+        self.assertEqual(val, exp_val)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ simplestruct, but by other projects that depend on simplestruct.
 __all__ = [
     'trim',
     'frozendict',
+    'make_frozen',
 ]
 
 
@@ -55,3 +56,16 @@ class frozendict(Mapping):
     
     def __hash__(self):
         return self.hash
+
+
+def make_frozen(v):
+    """Normalize mutable dicts to frozendicts and lists to tuples,
+    recursively.
+    """
+    if isinstance(v, (dict, frozendict)):
+        return frozendict({make_frozen(k): make_frozen(v)
+                           for k, v in v.items()})
+    elif isinstance(v, (list, tuple)):
+        return tuple(make_frozen(e) for e in v)
+    else:
+        return v
