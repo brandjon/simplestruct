@@ -119,6 +119,12 @@ class MetaStruct(type):
     # Construct the _struct attribute on the new class.
     def __new__(mcls, clsname, bases, namespace, **kargs):
         fields = []
+        # If inheriting, gather fields from base classes.
+        if namespace.get('_inherit_fields', False):
+            for b in bases:
+                if isinstance(b, MetaStruct):
+                    fields += b._struct
+        # Gather fields from this class's namespace.
         for fname, f in namespace.copy().items():
             if not isinstance(f, Field):
                 continue

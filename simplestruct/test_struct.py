@@ -164,6 +164,17 @@ class StructCase(unittest.TestCase):
         
         f3 = copy.deepcopy(f1)
         self.assertEqual(f3, f1)
+    
+    def testInheritFields(self):
+        class Foo(Struct):
+            a = Field()
+        class Bar(Foo):
+            _inherit_fields = True
+            b = Field()
+        
+        bar = Bar(1, 2)
+        self.assertEqual(bar.a, 1)
+        self.assertEqual(bar.b, 2)
 
 
 if __name__ == '__main__':
