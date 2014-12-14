@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from functools import reduce
 from inspect import Signature, Parameter
 
@@ -83,12 +83,18 @@ class MetaStruct(type):
                 if isinstance(b, MetaStruct):
                     fields += b._struct
         # Gather fields from this class's namespace.
-        for fname, f in namespace.copy().items():
+        for fname, f in namespace.items():
             if not isinstance(f, Field):
                 continue
-            
             f.name = fname
             fields.append(f)
+        # Ensure no name collisions.
+        fnames = Counter(f.name for f in fields)
+        collided = [k for k in fnames if fnames[k] > 1]
+        if len(collided) > 0:
+            raise AttributeError(
+                'Struct {} has colliding field name(s): {}'.format(
+                clsname, ', '.join(collided)))
         
         cls = super().__new__(mcls, clsname, bases, dict(namespace), **kargs)
         
