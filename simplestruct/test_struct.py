@@ -77,15 +77,6 @@ class StructCase(unittest.TestCase):
         # Pretty-printing.
         self.assertEqual(str(f), 'Foo(bar=6)')
         
-        # Derived data.
-        class Foo(Struct):
-            bar = Field(int)
-            baz = Field(int, '!')
-            def __init__(self, bar):
-                self.baz = bar + 1
-        f = Foo(5)
-        self.assertEqual(f.baz, 6)
-        
         # Equality and hashing.
         class Foo(Struct):
             bar = Field(int)

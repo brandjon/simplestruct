@@ -24,12 +24,7 @@ def hash_seq(seq):
 class Field:
     
     """Descriptor for declaring struct fields. Fields have a name
-    and type spec (kind and mods). In addition to those specified
-    in types.py, mods may include:
-    
-        '!': this field is derived data that should not be passed as
-            an argument to the struct's constructor or consulted for
-            equality/hashing
+    and type spec (kind and mods).
     
     The 'seq' mod will additionally convert the value to a tuple.
     
@@ -104,13 +99,6 @@ class MetaStruct(type):
     _initialized attribute to True after __init__() returns.
     """
     
-    @property
-    def _primary_fields(cls):
-        """Non-derived fields, i.e. fields that don't have a '!'
-        modified.
-        """
-        return [f for f in cls._struct if '!' not in f.mods]
-    
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
     def __prepare__(mcls, name, bases, **kargs):
@@ -138,7 +126,7 @@ class MetaStruct(type):
         
         cls._signature = Signature(
             parameters=[Parameter(f.name, Parameter.POSITIONAL_OR_KEYWORD)
-                        for f in cls._primary_fields])
+                        for f in cls._struct])
         
         return cls
     
@@ -155,7 +143,7 @@ class Struct(metaclass=MetaStruct):
     type-checking and coersion, immutable fields, pretty-printing,
     equality, and hashing.
     
-    By default, __new__() will initialize the non-derived fields.
+    By default, __new__() will initialize all fields.
     If immutable, fields may still be written to until __init__()
     (of the last subclass) returns.
     
@@ -163,25 +151,20 @@ class Struct(metaclass=MetaStruct):
     is the only base class.
     """
     
-    @property
-    def _primary_fields(self):
-        return self.__class__._primary_fields
-    
     _immutable = True
     """Flag for whether to allow reassignment to fields after
     construction. Override with False in subclass to allow.
     """
     
     # We expect there to be one constructor argument for each
-    # non-derived field (i.e. a field without the '!' modifier),
-    # in field declaration order.
+    # field, in declaration order.
     def __new__(cls, *args, **kargs):
         inst = super().__new__(cls)
         inst._initialized = False
         
         try:
             boundargs = cls._signature.bind(*args, **kargs)
-            for f in cls._primary_fields:
+            for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
         except TypeError as exc:
             raise TypeError('Error constructing ' + cls.__name__) from exc
@@ -192,7 +175,7 @@ class Struct(metaclass=MetaStruct):
         return '{}({})'.format(
             self.__class__.__name__,
             ', '.join('{}={}'.format(f.name, fmt(getattr(self, f.name)))
-                      for f in self._primary_fields))
+                      for f in self._struct))
     
     def __str__(self):
         return self._fmt_helper(str)
@@ -204,7 +187,7 @@ class Struct(metaclass=MetaStruct):
             return NotImplemented
         
         return all(f._field_eq(getattr(self, f.name), getattr(other, f.name))
-                   for f in self._primary_fields)
+                   for f in self._struct)
     
     def __neq__(self, other):
         return not (self == other)
@@ -217,26 +200,26 @@ class Struct(metaclass=MetaStruct):
             raise TypeError('Cannot hash uninitialized Struct {}'.format(
                             str_valtype(self)))
         return hash_seq(f._field_hash(getattr(self, f.name))
-                        for f in self._primary_fields)
+                        for f in self._struct)
     
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that
         # the metaclass's __call__() will still run. This is needed to
-        # trigger the user-defined __init__() (which may compute
-        # derived field values) and to set _immutable to false.
+        # trigger the user-defined __init__() and to set _immutable to
+        # False.
         return (self.__class__, tuple(getattr(self, f.name)
-                                      for f in self._primary_fields))
+                                      for f in self._struct))
     
     def _asdict(self):
         """Return an OrderedDict of the fields."""
         return OrderedDict((f.name, getattr(self, f.name))
-                           for f in self._primary_fields)
+                           for f in self._struct)
     
     def _replace(self, **kargs):
         """Return a copy of this struct with the same fields except
         with the changes specified by kargs.
         """
         fields = {f.name: getattr(self, f.name)
-                  for f in self._primary_fields}
+                  for f in self._struct}
         fields.update(kargs)
         return type(self)(**fields)
