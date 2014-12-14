@@ -20,7 +20,7 @@ class StructCase(unittest.TestCase):
         # Since we're just testing Field and not MetaStruct,
         # we need to bypass some of the meta machinery and be
         # more verbose.
-        barfield = Field(int, 'seq')
+        barfield = Field()
         barfield.name = 'bar'
         class Foo:
             bar = barfield
@@ -29,22 +29,18 @@ class StructCase(unittest.TestCase):
                 self.bar = b
         
         # Instantiation.
-        f = Foo([5])
-        self.assertEqual(f.bar, (5,))
-        
-        # Type checking.
-        with self.assertRaises(TypeError):
-            f.bar = 'b'
+        f = Foo(5)
+        self.assertEqual(f.bar, 5)
         
         # Immutability.
         f._immutable = True
         with self.assertRaises(AttributeError):
-            f.bar = [6]
+            f.bar = 6
     
     def testStruct(self):
         # Basic functionality.
         class Foo(Struct):
-            bar = Field(int)
+            bar = Field()
         f = Foo(5)
         self.assertEqual(f.bar, 5)
         
@@ -60,13 +56,13 @@ class StructCase(unittest.TestCase):
         # Mutability.
         class Foo(Struct):
             _immutable = False
-            bar = Field(int)
+            bar = Field()
         f = Foo(5)
         f.bar = 6
         
         # Immutability.
         class Foo(Struct):
-            bar = Field(int)
+            bar = Field()
             def __init__(self, *_):
                 self.bar += 1
         f = Foo(5)
@@ -79,7 +75,7 @@ class StructCase(unittest.TestCase):
         
         # Equality and hashing.
         class Foo(Struct):
-            bar = Field(int)
+            bar = Field()
         f1 = Foo(5)
         f2 = Foo(5)
         f3 = Foo(6)
@@ -91,14 +87,14 @@ class StructCase(unittest.TestCase):
         # No hashing for mutable structs.
         class Foo(Struct):
             _immutable = False
-            bar = Field(int)
+            bar = Field()
         f = Foo(5)
         with self.assertRaises(TypeError):
             hash(f)
         
         # Or for structs that aren't yet constructed.
         class Foo(Struct):
-            bar = Field(int)
+            bar = Field()
             def __init__(self, bar):
                 hash(self)
             hash(self)
@@ -113,14 +109,14 @@ class StructCase(unittest.TestCase):
                 return int(val) * 2
         
         class FooA(Struct):
-            bar = Field(float, 'seq')
+            bar = Field()
         class FooB(Struct):
-            bar = CustomField(float, 'seq')
+            bar = CustomField()
         
-        fa1 = FooA([5.0])
-        fa2 = FooA([6.0])
-        fb1 = FooB([5.0])
-        fb2 = FooB([6.0])
+        fa1 = FooA(5)
+        fa2 = FooA(6)
+        fb1 = FooB(5)
+        fb2 = FooB(6)
         
         self.assertNotEqual(fa1, fa2)
         self.assertNotEqual(hash(fa1), 10)

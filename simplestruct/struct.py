@@ -12,9 +12,6 @@ from collections import OrderedDict
 from functools import reduce
 from inspect import Signature, Parameter
 
-from simplestruct.type import (str_valtype, check_spec,
-                               normalize_kind, normalize_mods)
-
 
 def hash_seq(seq):
     """Given a sequence of hash values, return a combined xor'd hash."""
@@ -23,10 +20,7 @@ def hash_seq(seq):
 
 class Field:
     
-    """Descriptor for declaring struct fields. Fields have a name
-    and type spec (kind and mods).
-    
-    The 'seq' mod will additionally convert the value to a tuple.
+    """Descriptor for declaring struct fields.
     
     All writes are type-checked according to the type spec. 
     Writing to a field will fail with AttributeError if the struct
@@ -40,11 +34,9 @@ class Field:
     # TODO: It would be a pretty sweet/evil metacircularity to define
     # Field itself as a Struct.
     
-    # The attribute "name" is assigned by MetaStruct.
-    
-    def __init__(self, kind=None, mods=()):
-        self.kind = normalize_kind(kind)
-        self.mods = normalize_mods(mods)
+    def __init__(self):
+        # The name will be assigned by MetaStruct.
+        self.name = None
     
     def __get__(self, inst, value):
         if inst is None:
@@ -54,29 +46,7 @@ class Field:
     def __set__(self, inst, value):
         if inst._immutable and inst._initialized:
             raise AttributeError('Struct is immutable')
-        
-        check_spec(value, self.kind, self.mods)
-        
-        if 'seq' in self.mods:
-            value = tuple(value)
-        
         inst.__dict__[self.name] = value
-    
-    def _field_eq(self, val1, val2):
-        """Compare two field values for equality."""
-        if 'seq' in self.mods:
-            if len(val1) != len(val2):
-                return False
-            return all(self.eq(e1, e2) for e1, e2 in zip(val1, val2))
-        else:
-            return self.eq(val1, val2)
-    
-    def _field_hash(self, val):
-        """Hash a field value."""
-        if 'seq' in self.mods:
-            return hash_seq(self.hash(e) for e in val)
-        else:
-            return self.hash(val)
     
     def eq(self, val1, val2):
         """Compare two values of this field's kind."""
@@ -186,7 +156,7 @@ class Struct(metaclass=MetaStruct):
         if not isinstance(self, other.__class__):
             return NotImplemented
         
-        return all(f._field_eq(getattr(self, f.name), getattr(other, f.name))
+        return all(f.eq(getattr(self, f.name), getattr(other, f.name))
                    for f in self._struct)
     
     def __neq__(self, other):
@@ -195,11 +165,11 @@ class Struct(metaclass=MetaStruct):
     def __hash__(self):
         if not self._immutable:
             raise TypeError('Cannot hash mutable Struct {}'.format(
-                            str_valtype(self)))
+                            type(self).__name__))
         if not self._initialized:
             raise TypeError('Cannot hash uninitialized Struct {}'.format(
-                            str_valtype(self)))
-        return hash_seq(f._field_hash(getattr(self, f.name))
+                            type(self).__name__))
+        return hash_seq(f.hash(getattr(self, f.name))
                         for f in self._struct)
     
     def __reduce_ex__(self, protocol):
