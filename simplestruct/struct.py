@@ -181,9 +181,6 @@ class Struct(metaclass=MetaStruct):
         return all(f.eq(getattr(self, f.name), getattr(other, f.name))
                    for f in self._struct)
     
-    def __neq__(self, other):
-        return not (self == other)
-    
     def __hash__(self):
         if not self._immutable:
             raise TypeError('Cannot hash mutable Struct {}'.format(
