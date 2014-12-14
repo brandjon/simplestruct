@@ -1,4 +1,4 @@
-"""Provides field descriptors and the base and meta classes for struct."""
+"""Core framework for Struct, its metaclass, and field descriptors."""
 
 
 __all__ = [
@@ -20,22 +20,20 @@ def hash_seq(seq):
 
 class Field:
     
-    """Descriptor for declaring struct fields.
+    """Descriptor for declaring fields on Structs.
     
-    All writes are type-checked according to the type spec. 
-    Writing to a field will fail with AttributeError if the struct
+    Writing to a field will fail with AttributeError if the Struct
     is immutable and has finished initializing.
     
-    To use custom equality/hashing semantics, subclass Field and
-    override eq() and hash(). Note that in the case of list-valued
-    fields, these functions are called element-wise.
+    Subclasses may override __set__() to implement type restrictions
+    or coercion, and may override eq() and hash() to implement custom
+    equality semantics.
     """
     
-    # TODO: It would be a pretty sweet/evil metacircularity to define
-    # Field itself as a Struct.
-    
     def __init__(self):
-        # The name will be assigned by MetaStruct.
+        # name is the attribute name through which this field is
+        # accessed from the Struct. This will be set automatically
+        # by MetaStruct.
         self.name = None
     
     def __get__(self, inst, value):
@@ -49,11 +47,11 @@ class Field:
         inst.__dict__[self.name] = value
     
     def eq(self, val1, val2):
-        """Compare two values of this field's kind."""
+        """Compare two values for this field."""
         return val1 == val2
     
     def hash(self, val):
-        """Hash a value of this field's kind."""
+        """Hash a value for this field."""
         return hash(val)
 
 
@@ -61,9 +59,13 @@ class MetaStruct(type):
     
     """Metaclass for Structs.
     
-    Upon class definition (of a new Struct subtype), set class attribute
-    _struct to be a tuple of the Field descriptors, in declaration
-    order.
+    Upon class definition (of a new Struct subtype), set the class
+    attribute _struct to be a tuple of the Field descriptors, in
+    declaration order. If the class has attribute _inherit_fields
+    and it evaluates to true, also include fields of base classes.
+    (Names of inherited fields must not collide with other inherited
+    fields or this class's fields.) Set class attribute _signature
+    to be an inspect.Signature object to facilitate instantiation.
     
     Upon instantiation of a Struct subtype, set the instance's
     _initialized attribute to True after __init__() returns.
@@ -115,16 +117,31 @@ class MetaStruct(type):
 
 class Struct(metaclass=MetaStruct):
     
-    """A fixed structure class that supports default constructors,
-    type-checking and coersion, immutable fields, pretty-printing,
-    equality, and hashing.
+    """Base class for Structs.
     
-    By default, __new__() will initialize all fields.
-    If immutable, fields may still be written to until __init__()
-    (of the last subclass) returns.
+    Declare fields by assigning class attributes to an instance of
+    the descriptor Field or one of its subclasses. These fields become
+    the positional arguments to the class's constructor. Construction
+    via keyword argument is also allowed, following normal Python
+    parameter passing rules.
     
-    Subclasses are not required to call super().__init__() if this
-    is the only base class.
+    If class attribute _inherit_fields is defined and evaluates to
+    true, the fields of each base class are prepended to this class's
+    list of fields in left-to-right order.
+    
+    A subclass may define __init__() to customize how fields are
+    initialized, or to set other non-field attributes. If the class
+    attribute _immutable evaluates to true, assigning to fields is
+    disallowed once the last subclass's __init__() finishes.
+    
+    Structs may be pickled. Upon unpickling, __init__() will be
+    called.
+    
+    Structs support structural equality. Hashing is allowed only
+    for immutable Structs and after they are initialized.
+    
+    The methods _asdict() and _replace() behave as they do for
+    collections.namedtuple.
     """
     
     _immutable = True
@@ -132,10 +149,9 @@ class Struct(metaclass=MetaStruct):
     construction. Override with False in subclass to allow.
     """
     
-    # We expect there to be one constructor argument for each
-    # field, in declaration order.
     def __new__(cls, *args, **kargs):
         inst = super().__new__(cls)
+        # _initialized is read during field initialization.
         inst._initialized = False
         
         try:
@@ -192,7 +208,7 @@ class Struct(metaclass=MetaStruct):
                            for f in self._struct)
     
     def _replace(self, **kargs):
-        """Return a copy of this struct with the same fields except
+        """Return a copy of this Struct with the same fields except
         with the changes specified by kargs.
         """
         fields = {f.name: getattr(self, f.name)
