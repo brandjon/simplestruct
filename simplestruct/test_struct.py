@@ -16,62 +16,44 @@ class PickleFoo(Struct):
 
 class StructCase(unittest.TestCase):
     
-    def testField(self):
-        # Since we're just testing Field and not MetaStruct,
-        # we need to bypass some of the meta machinery and be
-        # more verbose.
+    def test_Field(self):
+        # We're just testing the behavior of Field as a descriptor,
+        # and not Struct/MetaStruct, so we'll mock the behavior of
+        # the meta machinery.
         barfield = Field()
         barfield.name = 'bar'
-        class Foo:
-            bar = barfield
-            def __init__(self, b):
-                self._immutable = False
-                self.bar = b
         
-        # Instantiation.
-        f = Foo(5)
+        # Normal read/write access.
+        class Foo:
+            _immutable = False
+            bar = barfield
+        f = Foo()
+        f.bar = 5
         self.assertEqual(f.bar, 5)
         
-        # Immutability.
-        f._immutable = True
+        # Immutable access, pre- and post-initialization.
+        class Foo:
+            _immutable = True
+            bar = barfield
+        f = Foo()
+        f._initialized = False
+        f.bar = 5
+        f._initialized = True
         with self.assertRaises(AttributeError):
             f.bar = 6
+        
+        # Equality and hashing.
+        self.assertTrue(barfield.eq(5, 5))
+        self.assertFalse(barfield.eq(5, 6))
+        self.assertEqual(barfield.hash(5), hash(5))
     
-    def testStruct(self):
-        # Basic functionality.
+    def test_Struct(self):
+        # Basic instantiation and pretty printing.
         class Foo(Struct):
             bar = Field()
         f = Foo(5)
         self.assertEqual(f.bar, 5)
-        
-        # Construction by keyword.
-        class Foo(Struct):
-            a = Field()
-            b = Field()
-            c = Field()
-        f1 = Foo(1, b=2, **{'c': 3})
-        f2 = Foo(1, 2, 3)
-        self.assertEqual(f1, f2)
-        
-        # Mutability.
-        class Foo(Struct):
-            _immutable = False
-            bar = Field()
-        f = Foo(5)
-        f.bar = 6
-        
-        # Immutability.
-        class Foo(Struct):
-            bar = Field()
-            def __init__(self, *_):
-                self.bar += 1
-        f = Foo(5)
-        self.assertEqual(f.bar, 6)
-        with self.assertRaises(AttributeError):
-            f.bar = 7
-        
-        # Pretty-printing.
-        self.assertEqual(str(f), 'Foo(bar=6)')
+        self.assertEqual(str(f), 'Foo(bar=5)')
         
         # Equality and hashing.
         class Foo(Struct):
@@ -92,16 +74,45 @@ class StructCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             hash(f)
         
-        # Or for structs that aren't yet constructed.
+        # Construction by keyword.
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+            c = Field()
+        f1 = Foo(1, b=2, **{'c': 3})
+        f2 = Foo(1, 2, 3)
+        self.assertEqual(f1, f2)
+    
+    def test_mutability(self):
+        # Mutable, unhashable.
+        class Foo(Struct):
+            _immutable = False
+            bar = Field()
+        f = Foo(5)
+        f.bar = 6
+        with self.assertRaises(TypeError):
+            hash(f)
+        
+        # Immutable and hashable after initialization is done.
+        class Foo(Struct):
+            bar = Field()
+            def __init__(self, *_):
+                self.bar += 1
+        f = Foo(5)
+        self.assertEqual(f.bar, 6)
+        hash(f)
+        with self.assertRaises(AttributeError):
+            f.bar = 7
+        
+        # Unhashable during initialization.
         class Foo(Struct):
             bar = Field()
             def __init__(self, bar):
                 hash(self)
-            hash(self)
         with self.assertRaises(TypeError):
             f = Foo(5)
     
-    def testCustomEqHash(self):
+    def test_custom_eq_hash(self):
         class CustomField(Field):
             def eq(self, val1, val2):
                 return val1 * val2 > 0
@@ -119,11 +130,11 @@ class StructCase(unittest.TestCase):
         fb2 = FooB(6)
         
         self.assertNotEqual(fa1, fa2)
-        self.assertNotEqual(hash(fa1), 10)
+        self.assertEqual(hash(fa1), hash(5))
         self.assertEqual(fb1, fb2)
         self.assertEqual(hash(fb1), 10)
     
-    def testDict(self):
+    def test_asdict(self):
         class Foo(Struct):
             a = Field()
             b = Field()
@@ -133,7 +144,7 @@ class StructCase(unittest.TestCase):
         exp_d = OrderedDict([('a', 1), ('b', 2), ('c', 3)])
         self.assertEqual(d, exp_d)
     
-    def testReplace(self):
+    def test_replace(self):
         class Foo(Struct):
             a = Field()
             b = Field()
@@ -143,26 +154,29 @@ class StructCase(unittest.TestCase):
         f3 = Foo(1, 4, 3)
         self.assertEqual(f2, f3)
     
-    def testPickleability(self):
+    def test_pickleability(self):
+        # Pickle dump/load.
         f1 = PickleFoo(1)
         buf = pickle.dumps(f1)
         f2 = pickle.loads(buf)
         self.assertEqual(f2, f1)
         
+        # Deep copy.
         f3 = copy.deepcopy(f1)
         self.assertEqual(f3, f1)
     
-    def testInheritFields(self):
+    def test_inherit_fields(self):
+        # Normal case.
         class Foo(Struct):
             a = Field()
         class Bar(Foo):
             _inherit_fields = True
             b = Field()
-        
         bar = Bar(1, 2)
         self.assertEqual(bar.a, 1)
         self.assertEqual(bar.b, 2)
         
+        # Name collision.
         with self.assertRaises(AttributeError):
             class Baz(Foo):
                 _inherit_fields = True
