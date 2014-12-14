@@ -82,6 +82,15 @@ class StructCase(unittest.TestCase):
         f1 = Foo(1, b=2, **{'c': 3})
         f2 = Foo(1, 2, 3)
         self.assertEqual(f1, f2)
+        # _struct attribute.
+        names = [f.name for f in Foo._struct]
+        self.assertEqual(names, ['a', 'b', 'c'])
+        
+        # Parentheses-less shorthand.
+        class Foo(Struct):
+            bar = Field
+        f = Foo(5)
+        self.assertEqual(f.bar, 5)
     
     def test_mutability(self):
         # Mutable, unhashable.

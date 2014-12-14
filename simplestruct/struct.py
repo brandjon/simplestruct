@@ -86,10 +86,14 @@ class MetaStruct(type):
                     fields += b._struct
         # Gather fields from this class's namespace.
         for fname, f in namespace.items():
-            if not isinstance(f, Field):
-                continue
-            f.name = fname
-            fields.append(f)
+            # Using the Field class directly (or one of its subclasses)
+            # is shorthand for making a Field instance with no args.
+            if isinstance(f, type) and issubclass(f, Field):
+                f = f()
+                namespace[fname] = f
+            if isinstance(f, Field):
+                f.name = fname
+                fields.append(f)
         # Ensure no name collisions.
         fnames = Counter(f.name for f in fields)
         collided = [k for k in fnames if fnames[k] > 1]
@@ -120,10 +124,11 @@ class Struct(metaclass=MetaStruct):
     """Base class for Structs.
     
     Declare fields by assigning class attributes to an instance of
-    the descriptor Field or one of its subclasses. These fields become
-    the positional arguments to the class's constructor. Construction
-    via keyword argument is also allowed, following normal Python
-    parameter passing rules.
+    the descriptor Field or one of its subclasses. As a convenience,
+    assigning to the Field (sub)class itself is also permitted.
+    The fields become the positional arguments to the class's
+    constructor. Construction via keyword argument is also allowed,
+    following normal Python parameter passing rules.
     
     If class attribute _inherit_fields is defined and evaluates to
     true, the fields of each base class are prepended to this class's
