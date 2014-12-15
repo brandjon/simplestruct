@@ -103,6 +103,15 @@ class StructCase(unittest.TestCase):
         # overlap, there'd be a name collision anyway.
         ids = {id(f) for f in Foo1._struct + Foo2._struct}
         self.assertTrue(len(ids) == 3)
+        
+        # Tuple decomposition.
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+        f = Foo(1, 2)
+        a, b = f
+        self.assertEqual(len(f), 2)
+        self.assertEqual((a, b), (1, 2))
     
     def test_mutability(self):
         # Mutable, unhashable.

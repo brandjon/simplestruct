@@ -67,11 +67,12 @@ Feature | Avoids boilerplate for | Supported by `namedtuple`?
 construction | `__init__()` | ✓
 extra attributes on self | | ✗
 pretty printing | `__str()__`, `__repr()__` | ✓
-structural equality | `__eq__()`, `__hash__()` | ✓
+structural equality | `__eq__()` | ✓
 inheritance | | ✗
 optional mutability | | ✗
 hashing (if immutable) | `__hash__()` | ✓
 pickling / deep-copying |  | ✓
+tuple decomposition | `__len__`, `__iter__` | ✓
 
 The `_asdict()` and `_replace()` methods from `namedtuple` are also
 provided.
@@ -90,7 +91,6 @@ See the `examples/` directory.
 
 Features TODO:
 - add support for `__slots__`
-- support iteration of fields (like namedtuple)
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)

@@ -204,6 +204,12 @@ class Struct(metaclass=MetaStruct):
         return hash_seq(f.hash(getattr(self, f.name))
                         for f in self._struct)
     
+    def __len__(self):
+        return len(self._struct)
+    
+    def __iter__(self):
+        return (getattr(self, f.name) for f in self._struct)
+    
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that
         # the metaclass's __call__() will still run. This is needed to
