@@ -188,24 +188,12 @@ class Struct(metaclass=MetaStruct):
         return self._fmt_helper(repr)
     
     def __eq__(self, other):
-        # Two Struct instances are equal if one of their classes
-        # is a subclass of the other, and if the field schema
-        # is the same.
-        #
-        # An alternative semantics would be to require that the types
-        # be exactly the same. I'm undecided on whether that would be
-        # better.
-        
-        # We're only responsible for a decision if our class is at
-        # least as derived as the other guy's class. Otherwise punt
-        # to the other guy's __eq__().
-        if not isinstance(self, other.__class__):
+        # Two struct instances are equal if they have the same
+        # type and same field values.
+        if type(self) != type(other):
+            # But leave the door open to subclasses providing
+            # alternative equality semantics.
             return NotImplemented
-        
-        # If the fields are not exactly the same, including order,
-        # we're not equal.
-        if self._struct != other._struct:
-            return False
         
         return all(f.eq(getattr(self, f.name), getattr(other, f.name))
                    for f in self._struct)
