@@ -195,7 +195,7 @@ class StructCase(unittest.TestCase):
         f3 = copy.deepcopy(f1)
         self.assertEqual(f3, f1)
     
-    def test_inherit_fields(self):
+    def test_inheritance(self):
         # Normal case.
         class Foo(Struct):
             a = Field()
@@ -211,6 +211,27 @@ class StructCase(unittest.TestCase):
             class Baz(Foo):
                 _inherit_fields = True
                 a = Field()
+        
+        # Equality across instances of different classes.
+        # Equality allowed -- no fields changed.
+        class Foo(Struct):
+            a = Field()
+        class Bar(Foo):
+            _inherit_fields = True
+        foo = Foo(1)
+        bar = Bar(1)
+        self.assertEqual(foo, bar)
+        # Equality disallowed -- fields changed.
+        class Bar(Foo):
+            _inherit_fields = True
+            b = Field()
+        bar = Bar(1, 2)
+        self.assertNotEqual(foo, bar)
+        # Equality disallowed -- different class hierarchies.
+        class Bar(Struct):
+            a = Field()
+        bar = Bar(1)
+        self.assertNotEqual(foo, bar)
 
 
 if __name__ == '__main__':
