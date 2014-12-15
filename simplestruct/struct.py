@@ -197,10 +197,10 @@ class Struct(metaclass=MetaStruct):
     def __hash__(self):
         if not self._immutable:
             raise TypeError('Cannot hash mutable Struct {}'.format(
-                            type(self).__name__))
+                            self.__class__.__name__))
         if not self._initialized:
             raise TypeError('Cannot hash uninitialized Struct {}'.format(
-                            type(self).__name__))
+                            self.__class__.__name__))
         return hash_seq(f.hash(getattr(self, f.name))
                         for f in self._struct)
     

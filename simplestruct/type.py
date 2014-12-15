@@ -12,6 +12,7 @@ a tuple, and as None (equivalent to (object,)).
 
 
 __all__ = [
+    'normalize_kind',
     'checktype',
     'checktype_seq',
 ]
