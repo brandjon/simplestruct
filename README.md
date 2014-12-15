@@ -13,26 +13,30 @@ template.
 Writing struct classes by hand is tedious and error prone. Consider a
 simple Point2D class. The bare minimum we can write is
 
-    class Point2D:
-        def __init__(self, x, y):
-            self.x = x
-            self.y = y
+```python
+class Point2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+```
 
 but for it to be of any use, we'll need structural equality semantics
 and perhaps some pretty printing for debugging.
 
-    class Point2D:
-        def __init__(self, x, y):
-            self.x = x
-            self.y = y
-        def __repr__(self):
-            print('Point2D({}, {})'.format(self.x, self.y))
-        __str__ = __repr__
-        def __eq__(self, other):
-            # Nevermind type-checking and subtyping.
-            return self.x == other.x and self.y == other.y
-        def __hash__(self):
-            return hash(self.x) ^ hash(self.y)
+```python
+class Point2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        print('Point2D({}, {})'.format(self.x, self.y))
+    __str__ = __repr__
+    def __eq__(self, other):
+        # Nevermind type-checking and subtyping.
+        return self.x == other.x and self.y == other.y
+    def __hash__(self):
+        return hash(self.x) ^ hash(self.y)
+```
 
 If you're the sort of heathen who likes to use dynamic type checks
 in Python code, you'll want to add extra argument checking to the
@@ -73,6 +77,7 @@ optional mutability | | ✗
 hashing (if immutable) | `__hash__()` | ✓
 pickling / deep-copying |  | ✓
 tuple decomposition | `__len__`, `__iter__` | ✓
+optional type checking | | ✗
 
 The `_asdict()` and `_replace()` methods from `namedtuple` are also
 provided.
