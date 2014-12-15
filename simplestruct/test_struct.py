@@ -91,6 +91,18 @@ class StructCase(unittest.TestCase):
             bar = Field
         f = Foo(5)
         self.assertEqual(f.bar, 5)
+        
+        # Distinct uses of Field instances are cloned.
+        barfield = Field()
+        class Foo1(Struct):
+            bar1 = barfield
+            bar2 = barfield
+        class Foo2(Struct):
+            bar3 = barfield
+        # Check for distinct instances. Although if there's
+        # overlap, there'd be a name collision anyway.
+        ids = {id(f) for f in Foo1._struct + Foo2._struct}
+        self.assertTrue(len(ids) == 3)
     
     def test_mutability(self):
         # Mutable, unhashable.

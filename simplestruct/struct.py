@@ -36,6 +36,11 @@ class Field:
         # by MetaStruct.
         self.name = None
     
+    def copy(self):
+        # This is used by MetaStruct to get a fresh instance
+        # of the field for each of its occurrences.
+        return type(self)()
+    
     def __get__(self, inst, value):
         if inst is None:
             raise AttributeError('Cannot retrieve field from class')
@@ -90,10 +95,13 @@ class MetaStruct(type):
             # is shorthand for making a Field instance with no args.
             if isinstance(f, type) and issubclass(f, Field):
                 f = f()
-                namespace[fname] = f
             if isinstance(f, Field):
+                # Fields need to be copied in case they're used
+                # in multiple places (in this class or others).
+                f = f.copy()
                 f.name = fname
                 fields.append(f)
+            namespace[fname] = f
         # Ensure no name collisions.
         fnames = Counter(f.name for f in fields)
         collided = [k for k in fnames if fnames[k] > 1]
