@@ -1,4 +1,4 @@
-# Illustrates how to combine Struct with abstract base classes.
+"""Demonstrates how to combine Struct with abstract base classes."""
 
 from abc import ABCMeta, abstractmethod
 from simplestruct import Struct, Field, MetaStruct
@@ -11,9 +11,9 @@ class Abstract(metaclass=ABCMeta):
 # If we ran this code
 #
 #     class Concrete(Abstract, Struct):
-#         f = Field(int)
+#         f = Field
 #         def foo(self):
-#             return self.f
+#             return self.f ** 2
 #
 # we would get the following error:
 #
@@ -26,12 +26,12 @@ class ABCMetaStruct(MetaStruct, ABCMeta):
     pass
 
 class Concrete(Abstract, Struct, metaclass=ABCMetaStruct):
-    f = Field(int)
+    f = Field
     def foo(self):
         return self.f ** 2
 
 c = Concrete(5)
-print(c.foo())
+print(c.foo())      # 25
 
 # For convenience we can also do
 
@@ -41,9 +41,9 @@ class ABCStruct(Struct, metaclass=ABCMetaStruct):
 # and then
 
 class Concrete(Abstract, ABCStruct):
-    f = Field(int)
+    f = Field
     def foo(self):
         return self.f ** 2
 
 c = Concrete(5)
-print(c.foo())
+print(c.foo())      # 25
