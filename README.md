@@ -1,6 +1,6 @@
 # SimpleStruct
 
-*(Requires Python 3)*
+*(Supports Python 3.3 and up)*
 
 This is a small utility for making it easier to create "struct" classes
 in Python without writing boilerplate code. Structs are similar to the
