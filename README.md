@@ -92,6 +92,21 @@ overhead of descriptor function calls.
 See the `examples/` directory.
 
 
+## Developers ##
+
+Tests can be run with
+
+```
+python setup.py test
+```
+or alternatively by installing [Tox](http://testrun.org/tox/latest/) and
+running 
+```
+python -m tox
+```
+in the project root. Tox has the advantage of automatically testing both
+Python 3.3 and 3.4.
+
 ## TODO ###
 
 Features TODO:
@@ -99,6 +114,3 @@ Features TODO:
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
-
-Packaging TODO:
-- fix up setup.py, make installable
