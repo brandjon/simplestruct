@@ -92,20 +92,21 @@ overhead of descriptor function calls.
 See the `examples/` directory.
 
 
+## See also ##
+
+* The standard library's [namedtuple](https://docs.python.org/3/library/collections.html#collections.namedtuple)
+
+* Li Haoyi's MacroPy, specifically [case classes](https://github.com/lihaoyi/macropy#case-classes)
+
+
 ## Developers ##
 
-Tests can be run with
-
-```
-python setup.py test
-```
-or alternatively by installing [Tox](http://testrun.org/tox/latest/) and
-running 
-```
-python -m tox
-```
-in the project root. Tox has the advantage of automatically testing both
-Python 3.3 and 3.4.
+Tests can be run with `python setup.py test`, or alternatively by
+installing [Tox](http://testrun.org/tox/latest/) and running 
+`python -m tox` in the project root. Tox has the advantage of automatically
+testing both for Python 3.3 and 3.4. Building a source distribution
+(`python setup.py sdist`) requires the setuptools extension package
+[setuptools-git](https://github.com/wichert/setuptools-git).
 
 ## TODO ###
 

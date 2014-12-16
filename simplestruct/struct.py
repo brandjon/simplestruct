@@ -235,3 +235,10 @@ class Struct(metaclass=MetaStruct):
                   for f in self._struct}
         fields.update(kargs)
         return type(self)(**fields)
+    
+    # XXX: We could provide a copy() method as well, analogous to
+    # list, dict, and other collections. Unlike the above methods,
+    # it would not have an underscore prefix, and potentially clash
+    # with a user-defined field named "copy". But in this case,
+    # the user field should simply take precedence and shadow
+    # this feature.
