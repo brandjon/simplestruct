@@ -3,7 +3,7 @@ similar to collections.namedtuple classes but support optional type-
 checking, mutability, and inheritance.
 """
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 from .struct import *
 from .fields import *
