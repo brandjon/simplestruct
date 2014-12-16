@@ -1,4 +1,4 @@
-"""Provides field descriptors and the base and meta classes for struct."""
+"""Core framework for Struct, its metaclass, and field descriptors."""
 
 
 __all__ = [
@@ -8,12 +8,9 @@ __all__ = [
 ]
 
 
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from functools import reduce
 from inspect import Signature, Parameter
-
-from simplestruct.type import (str_valtype, check_spec,
-                               normalize_kind, normalize_mods)
 
 
 def hash_seq(seq):
@@ -23,33 +20,26 @@ def hash_seq(seq):
 
 class Field:
     
-    """Descriptor for declaring struct fields. Fields have a name
-    and type spec (kind and mods). In addition to those specified
-    in types.py, mods may include:
+    """Descriptor for declaring fields on Structs.
     
-        '!': this field is derived data that should not be passed as
-            an argument to the struct's constructor or consulted for
-            equality/hashing
-    
-    The 'seq' mod will additionally convert the value to a tuple.
-    
-    All writes are type-checked according to the type spec. 
-    Writing to a field will fail with AttributeError if the struct
+    Writing to a field will fail with AttributeError if the Struct
     is immutable and has finished initializing.
     
-    To use custom equality/hashing semantics, subclass Field and
-    override eq() and hash(). Note that in the case of list-valued
-    fields, these functions are called element-wise.
+    Subclasses may override __set__() to implement type restrictions
+    or coercion, and may override eq() and hash() to implement custom
+    equality semantics.
     """
     
-    # TODO: It would be a pretty sweet/evil metacircularity to define
-    # Field itself as a Struct.
+    def __init__(self):
+        # name is the attribute name through which this field is
+        # accessed from the Struct. This will be set automatically
+        # by MetaStruct.
+        self.name = None
     
-    # The attribute "name" is assigned by MetaStruct.
-    
-    def __init__(self, kind=None, mods=()):
-        self.kind = normalize_kind(kind)
-        self.mods = normalize_mods(mods)
+    def copy(self):
+        # This is used by MetaStruct to get a fresh instance
+        # of the field for each of its occurrences.
+        return type(self)()
     
     def __get__(self, inst, value):
         if inst is None:
@@ -59,36 +49,14 @@ class Field:
     def __set__(self, inst, value):
         if inst._immutable and inst._initialized:
             raise AttributeError('Struct is immutable')
-        
-        check_spec(value, self.kind, self.mods)
-        
-        if 'seq' in self.mods:
-            value = tuple(value)
-        
         inst.__dict__[self.name] = value
     
-    def _field_eq(self, val1, val2):
-        """Compare two field values for equality."""
-        if 'seq' in self.mods:
-            if len(val1) != len(val2):
-                return False
-            return all(self.eq(e1, e2) for e1, e2 in zip(val1, val2))
-        else:
-            return self.eq(val1, val2)
-    
-    def _field_hash(self, val):
-        """Hash a field value."""
-        if 'seq' in self.mods:
-            return hash_seq(self.hash(e) for e in val)
-        else:
-            return self.hash(val)
-    
     def eq(self, val1, val2):
-        """Compare two values of this field's kind."""
+        """Compare two values for this field."""
         return val1 == val2
     
     def hash(self, val):
-        """Hash a value of this field's kind."""
+        """Hash a value for this field."""
         return hash(val)
 
 
@@ -96,20 +64,17 @@ class MetaStruct(type):
     
     """Metaclass for Structs.
     
-    Upon class definition (of a new Struct subtype), set class attribute
-    _struct to be a tuple of the Field descriptors, in declaration
-    order.
+    Upon class definition (of a new Struct subtype), set the class
+    attribute _struct to be a tuple of the Field descriptors, in
+    declaration order. If the class has attribute _inherit_fields
+    and it evaluates to true, also include fields of base classes.
+    (Names of inherited fields must not collide with other inherited
+    fields or this class's fields.) Set class attribute _signature
+    to be an inspect.Signature object to facilitate instantiation.
     
     Upon instantiation of a Struct subtype, set the instance's
     _initialized attribute to True after __init__() returns.
     """
-    
-    @property
-    def _primary_fields(cls):
-        """Non-derived fields, i.e. fields that don't have a '!'
-        modified.
-        """
-        return [f for f in cls._struct if '!' not in f.mods]
     
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
@@ -125,12 +90,25 @@ class MetaStruct(type):
                 if isinstance(b, MetaStruct):
                     fields += b._struct
         # Gather fields from this class's namespace.
-        for fname, f in namespace.copy().items():
-            if not isinstance(f, Field):
-                continue
-            
-            f.name = fname
-            fields.append(f)
+        for fname, f in namespace.items():
+            # Using the Field class directly (or one of its subclasses)
+            # is shorthand for making a Field instance with no args.
+            if isinstance(f, type) and issubclass(f, Field):
+                f = f()
+            if isinstance(f, Field):
+                # Fields need to be copied in case they're used
+                # in multiple places (in this class or others).
+                f = f.copy()
+                f.name = fname
+                fields.append(f)
+            namespace[fname] = f
+        # Ensure no name collisions.
+        fnames = Counter(f.name for f in fields)
+        collided = [k for k in fnames if fnames[k] > 1]
+        if len(collided) > 0:
+            raise AttributeError(
+                'Struct {} has colliding field name(s): {}'.format(
+                clsname, ', '.join(collided)))
         
         cls = super().__new__(mcls, clsname, bases, dict(namespace), **kargs)
         
@@ -138,7 +116,7 @@ class MetaStruct(type):
         
         cls._signature = Signature(
             parameters=[Parameter(f.name, Parameter.POSITIONAL_OR_KEYWORD)
-                        for f in cls._primary_fields])
+                        for f in cls._struct])
         
         return cls
     
@@ -151,37 +129,47 @@ class MetaStruct(type):
 
 class Struct(metaclass=MetaStruct):
     
-    """A fixed structure class that supports default constructors,
-    type-checking and coersion, immutable fields, pretty-printing,
-    equality, and hashing.
+    """Base class for Structs.
     
-    By default, __new__() will initialize the non-derived fields.
-    If immutable, fields may still be written to until __init__()
-    (of the last subclass) returns.
+    Declare fields by assigning class attributes to an instance of
+    the descriptor Field or one of its subclasses. As a convenience,
+    assigning to the Field (sub)class itself is also permitted.
+    The fields become the positional arguments to the class's
+    constructor. Construction via keyword argument is also allowed,
+    following normal Python parameter passing rules.
     
-    Subclasses are not required to call super().__init__() if this
-    is the only base class.
+    If class attribute _inherit_fields is defined and evaluates to
+    true, the fields of each base class are prepended to this class's
+    list of fields in left-to-right order.
+    
+    A subclass may define __init__() to customize how fields are
+    initialized, or to set other non-field attributes. If the class
+    attribute _immutable evaluates to true, assigning to fields is
+    disallowed once the last subclass's __init__() finishes.
+    
+    Structs may be pickled. Upon unpickling, __init__() will be
+    called.
+    
+    Structs support structural equality. Hashing is allowed only
+    for immutable Structs and after they are initialized.
+    
+    The methods _asdict() and _replace() behave as they do for
+    collections.namedtuple.
     """
-    
-    @property
-    def _primary_fields(self):
-        return self.__class__._primary_fields
     
     _immutable = True
     """Flag for whether to allow reassignment to fields after
     construction. Override with False in subclass to allow.
     """
     
-    # We expect there to be one constructor argument for each
-    # non-derived field (i.e. a field without the '!' modifier),
-    # in field declaration order.
     def __new__(cls, *args, **kargs):
         inst = super().__new__(cls)
+        # _initialized is read during field initialization.
         inst._initialized = False
         
         try:
             boundargs = cls._signature.bind(*args, **kargs)
-            for f in cls._primary_fields:
+            for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
         except TypeError as exc:
             raise TypeError('Error constructing ' + cls.__name__) from exc
@@ -192,7 +180,7 @@ class Struct(metaclass=MetaStruct):
         return '{}({})'.format(
             self.__class__.__name__,
             ', '.join('{}={}'.format(f.name, fmt(getattr(self, f.name)))
-                      for f in self._primary_fields))
+                      for f in self._struct))
     
     def __str__(self):
         return self._fmt_helper(str)
@@ -200,43 +188,50 @@ class Struct(metaclass=MetaStruct):
         return self._fmt_helper(repr)
     
     def __eq__(self, other):
-        if not isinstance(self, other.__class__):
+        # Two struct instances are equal if they have the same
+        # type and same field values.
+        if type(self) != type(other):
+            # But leave the door open to subclasses providing
+            # alternative equality semantics.
             return NotImplemented
         
-        return all(f._field_eq(getattr(self, f.name), getattr(other, f.name))
-                   for f in self._primary_fields)
-    
-    def __neq__(self, other):
-        return not (self == other)
+        return all(f.eq(getattr(self, f.name), getattr(other, f.name))
+                   for f in self._struct)
     
     def __hash__(self):
         if not self._immutable:
             raise TypeError('Cannot hash mutable Struct {}'.format(
-                            str_valtype(self)))
+                            self.__class__.__name__))
         if not self._initialized:
             raise TypeError('Cannot hash uninitialized Struct {}'.format(
-                            str_valtype(self)))
-        return hash_seq(f._field_hash(getattr(self, f.name))
-                        for f in self._primary_fields)
+                            self.__class__.__name__))
+        return hash_seq(f.hash(getattr(self, f.name))
+                        for f in self._struct)
+    
+    def __len__(self):
+        return len(self._struct)
+    
+    def __iter__(self):
+        return (getattr(self, f.name) for f in self._struct)
     
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that
         # the metaclass's __call__() will still run. This is needed to
-        # trigger the user-defined __init__() (which may compute
-        # derived field values) and to set _immutable to false.
+        # trigger the user-defined __init__() and to set _immutable to
+        # False.
         return (self.__class__, tuple(getattr(self, f.name)
-                                      for f in self._primary_fields))
+                                      for f in self._struct))
     
     def _asdict(self):
         """Return an OrderedDict of the fields."""
         return OrderedDict((f.name, getattr(self, f.name))
-                           for f in self._primary_fields)
+                           for f in self._struct)
     
     def _replace(self, **kargs):
-        """Return a copy of this struct with the same fields except
+        """Return a copy of this Struct with the same fields except
         with the changes specified by kargs.
         """
         fields = {f.name: getattr(self, f.name)
-                  for f in self._primary_fields}
+                  for f in self._struct}
         fields.update(kargs)
         return type(self)(**fields)

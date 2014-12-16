@@ -1,1 +1,4 @@
 __pycache__
+.tox
+SimpleStruct.egg-info
+dist

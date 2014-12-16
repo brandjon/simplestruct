@@ -1,76 +1,104 @@
-SimpleStruct
-============
+# SimpleStruct
 
-*(Requires Python 3)*
+*(Supports Python 3.3 and up)*
 
-This is a small utility for making it easier to write simple struct
-classes in Python, without having to write boilerplate code. Structs
-are similar to the standard library's namedtuple, but support type
-checking, mutability, and derived data (i.e. cached properties).
+This is a small utility for making it easier to create "struct" classes
+in Python without writing boilerplate code. Structs are similar to the
+standard library's `collections.namedtuple` but are more flexible,
+relying on an inheritance-based approach instead of `eval()`ing a code
+template.
 
-A struct is a class defining one or more named fields. The constructor
-takes in the non-derived fields, in the order they were declared.
-Structs can be compared for equality -- two instances of the same
-struct compare equal if their fields are equal. The struct may be
-declared as immutable or mutable; if immutable, modification is not
-allowed after `__init__()` finishes, and the struct becomes hashable.
-Structs are pretty-printed by `str()` and `repr()`.
+## Example
 
-Each field is declared with an optional type and modifiers. Types
-are checked dynamically upon assignment (or reassignment). Modifiers
-allow for lists of values, automatic type coersion, and for marking
-fields as derived (computed by a user-defined `__init__()`).
+Writing struct classes by hand is tedious and error prone. Consider a
+simple Point2D class. The bare minimum we can write is
 
-This is a small toy project, so no backwards compatability guarantees
-are made.
+```python
+class Point2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+```
 
+but for it to be of any use, we'll need structural equality semantics
+and perhaps some pretty printing for debugging.
 
-### To use ###
+```python
+class Point2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        print('Point2D({}, {})'.format(self.x, self.y))
+    __str__ = __repr__
+    def __eq__(self, other):
+        # Nevermind type-checking and subtyping.
+        return self.x == other.x and self.y == other.y
+    def __hash__(self):
+        return hash(self.x) ^ hash(self.y)
+```
 
-For the simplest case, just use
+If you're the sort of heathen who likes to use dynamic type checks
+in Python code, you'll want to add extra argument checking to the
+constructor. And we'll probably want to disallow inadvertently
+reassigning to x and y after construction, or else the hash value
+could become inconsistent -- a big problem if the point is stored
+in a hash-based collection.
+
+Even if we do all that, the code isn't robust to change. If we decide
+to make this a Point3D class, we'll have to update each method to
+accommodate the new z coordinate. One oversight and we're in for a
+potentially hard-to-find bug.
+
+`namedtuple` takes care of many of these problems, but it's not
+extensible. You can't easily derive a new class from a namedtuple
+class without implementing much of this boilerplate. It also forces
+immutability, which may be inappropriate for your use case.
+
+SimpleStruct provides a simple alternative. For the above case,
+we just write
 
     from simplestruct import Struct, Field
     
-    class Point(Struct):
-        x = Field(int)
-        y = Field(int)
+    class Point2D(Struct):
+        x = Field
+        y = Field
 
-to get a simple Point class. No need to define `__init__()`, `__str__()`,
-`__eq__()`, `__hash__()`, etc. See the examples/ directory for more.
+## Feature matrix
+
+Feature | Avoids boilerplate for | Supported by `namedtuple`?
+---|:---:|:---:
+construction | `__init__()` | ✓
+extra attributes on self | | ✗
+pretty printing | `__str()__`, `__repr()__` | ✓
+structural equality | `__eq__()` | ✓
+inheritance | | ✗
+optional mutability | | ✗
+hashing (if immutable) | `__hash__()` | ✓
+pickling / deep-copying |  | ✓
+tuple decomposition | `__len__`, `__iter__` | ✓
+optional type checking | | ✗
+
+The `_asdict()` and `_replace()` methods from `namedtuple` are also
+provided.
+
+One advantage that `namedtuple` does have is speed. It is based on
+the built-in Python tuple type, whereas SimpleStruct has the added
+overhead of descriptor function calls.
 
 
-### Comparison to namedtuple ###
+## To use ###
 
-The standard library's [namedtuple](http://docs.python.org/3/library/collections#collections.namedtuple)
-feature can generate classes similar to what this library produces.
-Specifically, namedtuple classes automatically get constructors, pretty-
-printing, equality, and hashing, as well as sequential access (so you can use
-decomposing assignment such as `x, y = mypoint`). They do *not* support type
-checks and mutability, nor can you define auxiliary attributes on the object
-since it is constructed all-at-once.
-
-Namedtuples are implemented by specializing and then `eval()`ing a source code
-template that describes the desired class. In contrast, SimpleStruct uses
-inheritance and metaclasses to implement all struct's behavior in a generic
-way. There is a performance penalty to this, since each operation results in
-more function calls. An application that requires top performance out of each
-struct operation should go with namedtuple if possible, especially because
-much of its functionality is provided by the built-in Python tuple type.
+See the `examples/` directory.
 
 
-### TODO ###
+## TODO ###
 
 Features TODO:
 - add support for `__slots__`
-- support iteration of fields (like namedtuple)
 - make exceptions appear to be raised from the stack frame of user code
   where the type error occurred, rather than inside this library (with
   a flag to disable, for debugging)
-- possibly make it so the same Field object can be used to declare multiple
-  structs, and the metaclass replaces this Field object with a copy so they
-  can have different "name" attributes. This would allow defining a reusable
-  kind of field without repeating kind/mods each time.
 
 Packaging TODO:
-- make usage examples
 - fix up setup.py, make installable
