@@ -219,6 +219,17 @@ class StructCase(unittest.TestCase):
         foo = Foo(1)
         bar = Bar(1)
         self.assertNotEqual(foo, bar)
+    
+    def test_recur(self):
+        # __repr__ for recursive objects.
+        class Foo(Struct):
+            _immutable = False
+            a = Field()
+        f = Foo(None)
+        f.a = f
+        s = repr(f)
+        exp_s = 'Foo(a=...)'
+        self.assertEqual(s, exp_s)
 
 
 if __name__ == '__main__':

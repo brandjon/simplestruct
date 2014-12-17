@@ -11,6 +11,7 @@ __all__ = [
 from collections import OrderedDict, Counter
 from functools import reduce
 from inspect import Signature, Parameter
+from reprlib import recursive_repr
 
 
 def hash_seq(seq):
@@ -182,8 +183,7 @@ class Struct(metaclass=MetaStruct):
             ', '.join('{}={}'.format(f.name, fmt(getattr(self, f.name)))
                       for f in self._struct))
     
-    def __str__(self):
-        return self._fmt_helper(str)
+    @recursive_repr()
     def __repr__(self):
         return self._fmt_helper(repr)
     
