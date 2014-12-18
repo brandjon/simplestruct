@@ -31,6 +31,15 @@ class FieldsCase(unittest.TestCase):
         Foo([1, 2])
         with self.assertRaises(TypeError):
             Foo([1, 2, 1])
+        
+        # Optional case.
+        class Foo(Struct):
+            _immutable = False
+            bar = TypedField(int, opt=True)
+        f1 = Foo()
+        f2 = Foo(5)
+        f2.bar = None
+        self.assertEqual(f1, f2)
 
 if __name__ == '__main__':
     unittest.main()
