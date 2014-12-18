@@ -31,16 +31,23 @@ class Field:
     equality semantics.
     """
     
-    def __init__(self):
+    NO_DEFAULT = object()
+    
+    def __init__(self, default=NO_DEFAULT):
         # name is the attribute name through which this field is
         # accessed from the Struct. This will be set automatically
         # by MetaStruct.
         self.name = None
+        self.default = default
     
     def copy(self):
         # This is used by MetaStruct to get a fresh instance
         # of the field for each of its occurrences.
-        return type(self)()
+        return type(self)(default=self.default)
+    
+    @property
+    def has_default(self):
+        return self.default is not self.NO_DEFAULT
     
     def __get__(self, inst, value):
         if inst is None:
@@ -115,9 +122,12 @@ class MetaStruct(type):
         
         cls._struct = tuple(fields)
         
-        cls._signature = Signature(
-            parameters=[Parameter(f.name, Parameter.POSITIONAL_OR_KEYWORD)
-                        for f in cls._struct])
+        params = []
+        for f in cls._struct:
+            default = f.default if f.has_default else Parameter.empty
+            params.append(Parameter(f.name, Parameter.POSITIONAL_OR_KEYWORD,
+                                    default=default))
+        cls._signature = Signature(params)
         
         return cls
     
@@ -170,6 +180,11 @@ class Struct(metaclass=MetaStruct):
         
         try:
             boundargs = cls._signature.bind(*args, **kargs)
+            # Include default arguments.
+            for param in cls._signature.parameters.values():
+                if (param.name not in boundargs.arguments and
+                    param.default is not param.empty):
+                    boundargs.arguments[param.name] = param.default
             for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
         except TypeError as exc:

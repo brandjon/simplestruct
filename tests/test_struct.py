@@ -74,6 +74,16 @@ class StructCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             hash(f)
         
+        # Tuple decomposition.
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+        f = Foo(1, 2)
+        a, b = f
+        self.assertEqual(len(f), 2)
+        self.assertEqual((a, b), (1, 2))
+    
+    def test_construct(self):
         # Construction by keyword.
         class Foo(Struct):
             a = Field()
@@ -85,6 +95,15 @@ class StructCase(unittest.TestCase):
         # _struct attribute.
         names = [f.name for f in Foo._struct]
         self.assertEqual(names, ['a', 'b', 'c'])
+        
+        # Construction with defaults.
+        class Foo(Struct):
+            a = Field()
+            b = Field(default='b')
+        f = Foo(1, 2)
+        self.assertEqual((f.a, f.b), (1, 2))
+        f = Foo(1)
+        self.assertEqual((f.a, f.b), (1, 'b'))
         
         # Parentheses-less shorthand.
         class Foo(Struct):
@@ -103,15 +122,6 @@ class StructCase(unittest.TestCase):
         # overlap, there'd be a name collision anyway.
         ids = {id(f) for f in Foo1._struct + Foo2._struct}
         self.assertTrue(len(ids) == 3)
-        
-        # Tuple decomposition.
-        class Foo(Struct):
-            a = Field()
-            b = Field()
-        f = Foo(1, 2)
-        a, b = f
-        self.assertEqual(len(f), 2)
-        self.assertEqual((a, b), (1, 2))
     
     def test_mutability(self):
         # Mutable, unhashable.
