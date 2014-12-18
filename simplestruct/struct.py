@@ -192,11 +192,19 @@ class Struct(metaclass=MetaStruct):
         
         return inst
     
+    # str() and repr() both recurse over their fields with
+    # whichever function was used initially. Both are protected
+    # from recursive cycles with the help of reprlib.
+    
     def _fmt_helper(self, fmt):
         return '{}({})'.format(
             self.__class__.__name__,
             ', '.join('{}={}'.format(f.name, fmt(getattr(self, f.name)))
                       for f in self._struct))
+    
+    @recursive_repr()
+    def __str__(self):
+        return self._fmt_helper(str)
     
     @recursive_repr()
     def __repr__(self):

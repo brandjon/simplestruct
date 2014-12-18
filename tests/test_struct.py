@@ -51,9 +51,10 @@ class StructCase(unittest.TestCase):
         # Basic instantiation and pretty printing.
         class Foo(Struct):
             bar = Field()
-        f = Foo(5)
-        self.assertEqual(f.bar, 5)
-        self.assertEqual(str(f), 'Foo(bar=5)')
+        f = Foo('a')
+        self.assertEqual(f.bar, 'a')
+        self.assertEqual(str(f), 'Foo(bar=a)')
+        self.assertEqual(repr(f), "Foo(bar='a')")
         
         # Equality and hashing.
         class Foo(Struct):
