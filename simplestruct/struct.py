@@ -51,7 +51,7 @@ class Field:
     
     def __get__(self, inst, value):
         if inst is None:
-            raise AttributeError('Cannot retrieve field from class')
+            return self
         return inst.__dict__[self.name]
     
     def __set__(self, inst, value):
