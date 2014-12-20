@@ -58,7 +58,7 @@ class TypeChecker:
             raise TypeError('Expected {}; got {}'.format(
                             self.str_kind(kind), self.str_valtype(val)))
     
-    def checktype_seq(self, seq, kind, nodups=False, **kargs):
+    def checktype_seq(self, seq, kind, *, nodups=False, **kargs):
         """Raise TypeError if seq is not a sequence of elements satisfying
         kind. Optionally require elements to be unique.
         

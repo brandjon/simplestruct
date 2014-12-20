@@ -48,7 +48,8 @@ class TypedField(Field, TypeChecker):
         """
         if not (self.opt and value is None):
             if self.seq:
-                self.checktype_seq(value, self.kind, self.nodups, inst=inst)
+                self.checktype_seq(value, self.kind,
+                                   nodups=self.nodups, inst=inst)
             else:
                 self.checktype(value, self.kind, inst=inst)
     
