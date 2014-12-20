@@ -95,7 +95,7 @@ class TypeChecker:
                 got = self.str_valtype(item)
                 raise TypeError('Expected sequence of {}; '
                                 'got sequence with {} at position {}'.format(
-                                exp, got, i))
+                                exp, got, i)) from None
         
         if nodups:
             seen = []
