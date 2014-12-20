@@ -26,7 +26,7 @@ class TypedField(Field, TypeChecker):
     
     def __init__(self, kind, *, seq=False, nodups=False, opt=False, **kargs):
         super().__init__(**kargs)
-        self.kind = self.normalize_kind(kind)
+        self.kind = kind
         self.seq = seq
         self.nodups = nodups
         self.opt = opt
@@ -34,6 +34,13 @@ class TypedField(Field, TypeChecker):
     def copy(self):
         return type(self)(self.kind, seq=self.seq, nodups=self.nodups,
                           opt=self.opt, default=self.default)
+    
+    @property
+    def kind(self):
+        return self._kind
+    @kind.setter
+    def kind(self, k):
+        self._kind = self.normalize_kind(k)
     
     def check(self, inst, value):
         """Raise TypeError if value doesn't satisfy the constraints
