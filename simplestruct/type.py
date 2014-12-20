@@ -111,10 +111,10 @@ class TypeChecker:
 
 checker = TypeChecker()
 
-def checktype(kind, val):
+def checktype(val, kind):
     kind = checker.normalize_kind(kind)
-    checker.checktype(kind, val)
+    checker.checktype(val, kind)
 
-def checktype_seq(kind, val):
+def checktype_seq(val, kind, *, nodups=False):
     kind = checker.normalize_kind(kind)
-    checker.checktype_seq(kind, val)
+    checker.checktype_seq(val, kind, nodups=nodups)
