@@ -37,12 +37,27 @@ class TypedField(Field):
         return type(self)(self.kind, seq=self.seq, nodups=self.nodups,
                           opt=self.opt)
     
-    def __set__(self, inst, value):
+    def check(self, inst, value):
+        """Raise TypeError if value doesn't satisfy the constraints
+        for use on instance inst.
+        """
         if not (self.opt and value is None):
             if self.seq:
                 checktype_seq(value, self.kind, self.nodups)
                 value = tuple(value)
             else:
                 checktype(value, self.kind)
-        
+    
+    def normalize(self, inst, value):
+        """Return value or a normalized form of it for use on
+        instance inst.
+        """
+        if (not (self.opt and value is None) and
+            self.seq):
+            value = tuple(value)
+        return value
+    
+    def __set__(self, inst, value):
+        self.check(inst, value)
+        value = self.normalize(inst, value)
         super().__set__(inst, value)

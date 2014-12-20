@@ -2,6 +2,7 @@
 
 ## 0.2.1 (unreleased)
 
+- added check() and normalize() hooks to TypedField
 - accessing fields descriptors from classes is now permissible
 - added support for default values in general, and optional values
   for type-checked fields
