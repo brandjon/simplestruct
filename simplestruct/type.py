@@ -8,6 +8,8 @@ allowing duck-typed alternative values.
 
 __all__ = [
     'TypeChecker',
+    'checktype',
+    'checktype_seq',
 ]
 
 
@@ -102,3 +104,17 @@ class TypeChecker:
                     raise TypeError('Duplicate element {} at '
                                     'position {}'.format(repr(item), i))
                 seen.append(item)
+
+
+# We export some convenience methods so the caller doesn't have to
+# instantiate TypeChecker. These methods automatically normalize kind.
+
+checker = TypeChecker()
+
+def checktype(kind, val):
+    kind = checker.normalize_kind(kind)
+    checker.checktype(kind, val)
+
+def checktype_seq(kind, val):
+    kind = checker.normalize_kind(kind)
+    checker.checktype_seq(kind, val)
