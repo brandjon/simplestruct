@@ -147,6 +147,22 @@ MacroPy as an extension to the Python language rather than as just
 a library. MacroPy case classes are subject to limitations on
 inheritance and class members.
 
+## Installation ##
+
+As with most Python packages, SimpleStruct is available on PyPI:
+
+```
+python -m pip install simplestruct
+```
+
+Or grab a development version if you're so inclined:
+
+```
+python -m pip install https://github.com/brandjon/simplestruct/tree/tarball/develop
+```
+
+Python 3.3 and 3.4 are supported. There are no additional dependencies.
+
 ## Developers ##
 
 Tests can be run with `python setup.py test`, or alternatively by
