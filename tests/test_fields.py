@@ -16,6 +16,8 @@ class FieldsCase(unittest.TestCase):
         f = Foo(1)
         with self.assertRaises(TypeError):
             Foo('a')
+        with self.assertRaises(TypeError):
+            Foo(None)
         
         # Sequence case.
         class Foo(Struct):
@@ -36,10 +38,7 @@ class FieldsCase(unittest.TestCase):
         class Foo(Struct):
             _immutable = False
             bar = TypedField(int, opt=True)
-        f1 = Foo()
-        f2 = Foo(5)
-        f2.bar = None
-        self.assertEqual(f1, f2)
+        f1 = Foo(None)
 
 if __name__ == '__main__':
     unittest.main()

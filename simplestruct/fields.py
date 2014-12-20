@@ -21,13 +21,11 @@ class TypedField(Field, TypeChecker):
     If nodup is also True, the elements must be distinct (as
     determined by kind.__eq__()).
     
-    If opt is True, None is a valid value and the default if no
-    value is given.
+    If opt is True, None is a valid value.
     """
     
-    def __init__(self, kind, *, seq=False, nodups=False, opt=False):
-        default = None if opt else self.NO_DEFAULT
-        super().__init__(default=default)
+    def __init__(self, kind, *, seq=False, nodups=False, opt=False, **kargs):
+        super().__init__(**kargs)
         self.kind = self.normalize_kind(kind)
         self.seq = seq
         self.nodups = nodups
