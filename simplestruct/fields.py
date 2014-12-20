@@ -33,7 +33,7 @@ class TypedField(Field, TypeChecker):
     
     def copy(self):
         return type(self)(self.kind, seq=self.seq, nodups=self.nodups,
-                          opt=self.opt)
+                          opt=self.opt, default=self.default)
     
     def check(self, inst, value):
         """Raise TypeError if value doesn't satisfy the constraints

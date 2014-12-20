@@ -31,6 +31,19 @@ class Field:
     equality semantics.
     """
     
+    # TODO: The current copy() is not ideal because a subclass that
+    # overrides it needs to know about the fields of the base class,
+    # so that it can pass those to the newly constructed object.
+    # For instance, TypedField needs to know to pass in
+    # default=self.default.
+    #
+    # One possible solution is to get meta: make Field itself be a
+    # Struct, and let attributes like default be Struct fields.
+    # Then the use of copy() becomes _replace(name=new_name),
+    # and subclasses simply set _inherit_fields = True.
+    # This solution would require a new non-Struct BaseField class
+    # for bootstrapping.
+    
     NO_DEFAULT = object()
     
     def __init__(self, default=NO_DEFAULT):
