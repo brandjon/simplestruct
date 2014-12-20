@@ -50,13 +50,13 @@ class TypeChecker:
         else:
             return 'one of {' + ', '.join(t.__name__ for t in kind) + '}'
     
-    def checktype(self, val, kind):
+    def checktype(self, val, kind, **kargs):
         """Raise TypeError if val does not satisfy kind."""
         if not isinstance(val, kind):
             raise TypeError('Expected {}; got {}'.format(
                             self.str_kind(kind), self.str_valtype(val)))
     
-    def checktype_seq(self, seq, kind, nodups=False):
+    def checktype_seq(self, seq, kind, nodups=False, **kargs):
         """Raise TypeError if seq is not a sequence of elements satisfying
         kind. Optionally require elements to be unique.
         
@@ -88,7 +88,7 @@ class TypeChecker:
             # but generate an error message that includes the position
             # of the failure.
             try:
-                self.checktype(item, kind)
+                self.checktype(item, kind, **kargs)
             except TypeError:
                 got = self.str_valtype(item)
                 raise TypeError('Expected sequence of {}; '

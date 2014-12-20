@@ -43,9 +43,9 @@ class TypedField(Field, TypeChecker):
         """
         if not (self.opt and value is None):
             if self.seq:
-                self.checktype_seq(value, self.kind, self.nodups)
+                self.checktype_seq(value, self.kind, self.nodups, inst=inst)
             else:
-                self.checktype(value, self.kind)
+                self.checktype(value, self.kind, inst=inst)
     
     def normalize(self, inst, value):
         """Return value or a normalized form of it for use on
