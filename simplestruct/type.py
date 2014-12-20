@@ -84,7 +84,12 @@ class TypeChecker:
                             'sequences)'.format(exp))
         
         for i, item in enumerate(iterator):
-            if not isinstance(item, kind):
+            # Depend on checktype() to check individual elements,
+            # but generate an error message that includes the position
+            # of the failure.
+            try:
+                self.checktype(item, kind)
+            except TypeError:
                 got = self.str_valtype(item)
                 raise TypeError('Expected sequence of {}; '
                                 'got sequence with {} at position {}'.format(
