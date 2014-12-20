@@ -7,10 +7,10 @@ __all__ = [
 
 
 from .struct import Field
-from .type import normalize_kind, checktype, checktype_seq
+from .type import TypeChecker
 
 
-class TypedField(Field):
+class TypedField(Field, TypeChecker):
     
     """A field with dynamically-checked type constraints.
     
@@ -28,7 +28,7 @@ class TypedField(Field):
     def __init__(self, kind, *, seq=False, nodups=False, opt=False):
         default = None if opt else self.NO_DEFAULT
         super().__init__(default=default)
-        self.kind = normalize_kind(kind)
+        self.kind = self.normalize_kind(kind)
         self.seq = seq
         self.nodups = nodups
         self.opt = opt
@@ -43,10 +43,9 @@ class TypedField(Field):
         """
         if not (self.opt and value is None):
             if self.seq:
-                checktype_seq(value, self.kind, self.nodups)
-                value = tuple(value)
+                self.checktype_seq(value, self.kind, self.nodups)
             else:
-                checktype(value, self.kind)
+                self.checktype(value, self.kind)
     
     def normalize(self, inst, value):
         """Return value or a normalized form of it for use on
