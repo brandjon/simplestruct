@@ -1,5 +1,7 @@
 # Release notes
 
+## 0.2.2 (unreleased)
+
 ## 0.2.1 (2014-12-20)
 
 - changed type checking keyword argument names: `opt` -> `or_none`
