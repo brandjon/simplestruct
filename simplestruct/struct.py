@@ -191,6 +191,7 @@ class Struct(metaclass=MetaStruct):
         # _initialized is read during field initialization.
         inst._initialized = False
         
+        f = None
         try:
             boundargs = cls._signature.bind(*args, **kargs)
             # Include default arguments.
@@ -200,8 +201,14 @@ class Struct(metaclass=MetaStruct):
                     boundargs.arguments[param.name] = param.default
             for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
+            f = None
         except TypeError as exc:
-            raise TypeError('Error constructing ' + cls.__name__) from exc
+            if f is not None:
+                where = "{} (field '{}')".format(cls.__name__, f.name)
+            else:
+                where = cls.__name__
+            raise TypeError('Error constructing {}: {}'.format(
+                            where, exc)) from exc
         
         return inst
     

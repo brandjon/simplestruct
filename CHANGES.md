@@ -2,6 +2,8 @@
 
 ## 0.2.1 (unreleased)
 
+- improved error messages for constructing Structs
+- significant updates to readme and examples
 - using opt=True on TypedField no longer implies that None is
   the default value
 - made mixin version of checktype() and checktype_seq()
