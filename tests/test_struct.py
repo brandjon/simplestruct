@@ -51,9 +51,10 @@ class StructCase(unittest.TestCase):
         # Basic instantiation and pretty printing.
         class Foo(Struct):
             bar = Field()
-        f = Foo(5)
-        self.assertEqual(f.bar, 5)
-        self.assertEqual(str(f), 'Foo(bar=5)')
+        f = Foo('a')
+        self.assertEqual(f.bar, 'a')
+        self.assertEqual(str(f), 'Foo(bar=a)')
+        self.assertEqual(repr(f), "Foo(bar='a')")
         
         # Equality and hashing.
         class Foo(Struct):
@@ -74,6 +75,16 @@ class StructCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             hash(f)
         
+        # Tuple decomposition.
+        class Foo(Struct):
+            a = Field()
+            b = Field()
+        f = Foo(1, 2)
+        a, b = f
+        self.assertEqual(len(f), 2)
+        self.assertEqual((a, b), (1, 2))
+    
+    def test_construct(self):
         # Construction by keyword.
         class Foo(Struct):
             a = Field()
@@ -85,6 +96,15 @@ class StructCase(unittest.TestCase):
         # _struct attribute.
         names = [f.name for f in Foo._struct]
         self.assertEqual(names, ['a', 'b', 'c'])
+        
+        # Construction with defaults.
+        class Foo(Struct):
+            a = Field()
+            b = Field(default='b')
+        f = Foo(1, 2)
+        self.assertEqual((f.a, f.b), (1, 2))
+        f = Foo(1)
+        self.assertEqual((f.a, f.b), (1, 'b'))
         
         # Parentheses-less shorthand.
         class Foo(Struct):
@@ -103,15 +123,6 @@ class StructCase(unittest.TestCase):
         # overlap, there'd be a name collision anyway.
         ids = {id(f) for f in Foo1._struct + Foo2._struct}
         self.assertTrue(len(ids) == 3)
-        
-        # Tuple decomposition.
-        class Foo(Struct):
-            a = Field()
-            b = Field()
-        f = Foo(1, 2)
-        a, b = f
-        self.assertEqual(len(f), 2)
-        self.assertEqual((a, b), (1, 2))
     
     def test_mutability(self):
         # Mutable, unhashable.
@@ -219,6 +230,17 @@ class StructCase(unittest.TestCase):
         foo = Foo(1)
         bar = Bar(1)
         self.assertNotEqual(foo, bar)
+    
+    def test_recur(self):
+        # __repr__ for recursive objects.
+        class Foo(Struct):
+            _immutable = False
+            a = Field()
+        f = Foo(None)
+        f.a = f
+        s = repr(f)
+        exp_s = 'Foo(a=...)'
+        self.assertEqual(s, exp_s)
 
 
 if __name__ == '__main__':
