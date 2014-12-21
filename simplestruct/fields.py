@@ -18,22 +18,23 @@ class TypedField(Field, TypeChecker):
     If seq is False, the field value must satisfy kind. Otherwise,
     the field value must be a sequence of elements that satisfy kind.
     The sequence gets converted to a tuple if it isn't already.
-    If nodup is also True, the elements must be distinct (as
+    If unique is also True, the elements must be distinct (as
     determined by kind.__eq__()).
     
-    If opt is True, None is a valid value.
+    If or_none is True, None is a valid value.
     """
     
-    def __init__(self, kind, *, seq=False, nodups=False, opt=False, **kargs):
+    def __init__(self, kind, *,
+                 seq=False, unique=False, or_none=False, **kargs):
         super().__init__(**kargs)
         self.kind = kind
         self.seq = seq
-        self.nodups = nodups
-        self.opt = opt
+        self.unique = unique
+        self.or_none = or_none
     
     def copy(self):
-        return type(self)(self.kind, seq=self.seq, nodups=self.nodups,
-                          opt=self.opt, default=self.default)
+        return type(self)(self.kind, seq=self.seq, unique=self.unique,
+                          or_none=self.or_none, default=self.default)
     
     @property
     def kind(self):
@@ -46,10 +47,10 @@ class TypedField(Field, TypeChecker):
         """Raise TypeError if value doesn't satisfy the constraints
         for use on instance inst.
         """
-        if not (self.opt and value is None):
+        if not (self.or_none and value is None):
             if self.seq:
                 self.checktype_seq(value, self.kind,
-                                   nodups=self.nodups, inst=inst)
+                                   unique=self.unique, inst=inst)
             else:
                 self.checktype(value, self.kind, inst=inst)
     
@@ -57,7 +58,7 @@ class TypedField(Field, TypeChecker):
         """Return value or a normalized form of it for use on
         instance inst.
         """
-        if (not (self.opt and value is None) and
+        if (not (self.or_none and value is None) and
             self.seq):
             value = tuple(value)
         return value

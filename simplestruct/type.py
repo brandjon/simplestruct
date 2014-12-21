@@ -58,7 +58,7 @@ class TypeChecker:
             raise TypeError('Expected {}; got {}'.format(
                             self.str_kind(kind), self.str_valtype(val)))
     
-    def checktype_seq(self, seq, kind, *, nodups=False, **kargs):
+    def checktype_seq(self, seq, kind, *, unique=False, **kargs):
         """Raise TypeError if seq is not a sequence of elements satisfying
         kind. Optionally require elements to be unique.
         
@@ -97,7 +97,7 @@ class TypeChecker:
                                 'got sequence with {} at position {}'.format(
                                 exp, got, i)) from None
         
-        if nodups:
+        if unique:
             seen = []
             for i, item in enumerate(seq):
                 if item in seen:
@@ -115,6 +115,6 @@ def checktype(val, kind):
     kind = checker.normalize_kind(kind)
     checker.checktype(val, kind)
 
-def checktype_seq(val, kind, *, nodups=False):
+def checktype_seq(val, kind, *, unique=False):
     kind = checker.normalize_kind(kind)
-    checker.checktype_seq(val, kind, nodups=nodups)
+    checker.checktype_seq(val, kind, unique=unique)

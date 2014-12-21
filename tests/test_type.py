@@ -60,7 +60,7 @@ class ChecktypeCase(unittest.TestCase):
         checktype_seq([5, 3, 5, 8], int)
         with self.assertRaisesRegex(
                 TypeError, 'Duplicate element 5 at position 2'):
-            checktype_seq([5, 3, 5, 8], int, nodups=True)
+            checktype_seq([5, 3, 5, 8], int, unique=True)
 
 
 if __name__ == '__main__':

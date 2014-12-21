@@ -27,9 +27,9 @@ class FieldsCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             Foo([1, 'a'])
         
-        # Nodups sequence.
+        # Sequence without duplicates.
         class Foo(Struct):
-            bar = TypedField(int, seq=True, nodups=True)
+            bar = TypedField(int, seq=True, unique=True)
         Foo([1, 2])
         with self.assertRaises(TypeError):
             Foo([1, 2, 1])
@@ -37,7 +37,7 @@ class FieldsCase(unittest.TestCase):
         # Optional case.
         class Foo(Struct):
             _immutable = False
-            bar = TypedField(int, opt=True)
+            bar = TypedField(int, or_none=True)
         f1 = Foo(None)
 
 if __name__ == '__main__':

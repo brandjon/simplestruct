@@ -2,6 +2,8 @@
 
 ## 0.2.1 (unreleased)
 
+- changed type checking keyword argument names: 'opt' -> 'or_none'
+  and 'nodups' -> 'unique'
 - improved error messages for constructing Structs
 - significant updates to readme and examples
 - using opt=True on TypedField no longer implies that None is
