@@ -63,6 +63,7 @@ from numbers import Number      # standard library abstract base class
 from simplestruct import Struct, Field, TypedField
 
 class Point2D(Struct):
+    # Note that field declaration order matters.
     x = TypedField(Number)
     y = TypedField(Number)
 ```
@@ -85,10 +86,11 @@ class Point2D(Struct):
 
 For more usage examples, see the sample files:
 
-- [point.py](examples/point.py): Basic usage
-- [vector.py](examples/vector.py): More advanced cases
-- [abstract.py](examples/abstract.py): Composing Structs with
-  metaclasses from other libraries
+File | Purpose
+---|---
+[point.py](examples/point.py) | introduction, basic use
+[vector.py](examples/vector.py) | advanced features
+[abstract.py](examples/abstract.py) | mixing structs and metaclasses
 
 ## Comparison and feature matrix
 
