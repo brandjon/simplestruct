@@ -89,6 +89,7 @@ For more usage examples, see the sample files:
 File | Purpose
 ---|---
 [point.py](examples/point.py) | introduction, basic use
+[typed.py](examples/typed.py) | type-checked fields
 [vector.py](examples/vector.py) | advanced features
 [abstract.py](examples/abstract.py) | mixing structs and metaclasses
 
