@@ -114,7 +114,7 @@ the boilerplate methods so they recognize the new fields. This can be
 done using multiple inheritance:
 
 ```python
-BaseEmployee = namedtuple('BaseEmployee', Employee._fields + ('salary',))
+BaseEmployee = namedtuple('BaseEmployee', BasePerson._fields + ('salary',))
 class Employee(BaseEmployee, Person):
     pass
 ```
@@ -141,13 +141,13 @@ tuple decomposition | `__len__`, `__iter__` | ✓
 optional type checking | `__init__()`, `@property` | ✗
 `_asdict()` / `_replace()` | | ✓
 
-[MacroPy][2]'s case classes provide similar functionality, but is
+[MacroPy][2]'s "case classes" provide similar functionality, but are
 implemented in a very different way. Instead of metaclass hacking
-or source code templating, it relies on syntactic transformation
+or source code templating, MacroPy relies on syntactic transformation
 of the module's AST. This allows for a syntax that's very different
 from what we've seen above. So different, in fact, that we might view
 MacroPy as an extension to the Python language rather than as just
-a library. MacroPy case classes are subject to limitations on
+a library. Case classes are subject to limitations on
 inheritance and class members.
 
 ## Installation ##
