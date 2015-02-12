@@ -1,4 +1,4 @@
-# SimpleStruct
+# SimpleStruct #
 
 *(Supports Python 3.3 and up)*
 
@@ -9,7 +9,7 @@ inheritance-based approach instead of `eval()`ing a code template. If
 you like using `namedtuple` classes but wish they were more composable
 and extensible, this project is for you.
 
-## Example
+## Example ##
 
 Writing struct classes by hand is tedious and error prone. Consider a
 simple point class. The bare minimum we can write in Python is
@@ -93,7 +93,7 @@ File | Purpose
 [vector.py](examples/vector.py) | advanced features
 [abstract.py](examples/abstract.py) | mixing structs and metaclasses
 
-## Comparison and feature matrix
+## Comparison and feature matrix ##
 
 The most important problems mentioned above are solved by using
 `namedtuple`, but this approach begins to break down when you
