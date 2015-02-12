@@ -99,7 +99,7 @@ class MetaStruct(type):
     
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
-    def __prepare__(mcls, name, bases, **kargs):
+    def __prepare__(cls, name, bases, **kargs):
         return OrderedDict()
     
     # Construct the _struct attribute on the new class.
@@ -145,7 +145,7 @@ class MetaStruct(type):
         return cls
     
     # Mark the class as _initialized after construction.
-    def __call__(mcls, *args, **kargs):
+    def __call__(cls, *args, **kargs):
         inst = super().__call__(*args, **kargs)
         inst._initialized = True
         return inst
