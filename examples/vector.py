@@ -83,7 +83,7 @@ except TypeError as e:
 # The arguments are the declared fields, in order of their declaration.
 #
 # Fields are initialized in __new__(). A subclass that overrides
-# __new__() must call super.__new__() (not type.__new__()).
+# __new__() must call super().__new__() (not type.__new__()).
 # __init__() does not need to call super().__init__() or do any work
 # on behalf of the Struct system.
 #
