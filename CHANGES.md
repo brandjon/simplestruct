@@ -2,6 +2,8 @@
 
 ## 0.2.2 (unreleased)
 
+- testing a Struct for equality with itself succeeds quickly
+
 ## 0.2.1 (2014-12-20)
 
 - changed type checking keyword argument names: `opt` -> `or_none`

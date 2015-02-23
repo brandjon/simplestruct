@@ -231,6 +231,13 @@ class Struct(metaclass=MetaStruct):
         return self._fmt_helper(repr)
     
     def __eq__(self, other):
+        # Succeed immediately if we're being tested against ourselves
+        # (identical object in memory). This avoids an unnecessary
+        # walk over the fields, which can be expensive if the field
+        # values are themselves Structs, and so on.
+        if self is other:
+            return True
+        
         # Two struct instances are equal if they have the same
         # type and same field values.
         if type(self) != type(other):
