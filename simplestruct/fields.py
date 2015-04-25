@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 
-from .struct import Field
+from .struct import Field, Struct
 from .type import TypeChecker
 
 
@@ -64,6 +64,14 @@ class TypedField(Field, TypeChecker):
         return value
     
     def __set__(self, inst, value):
+        # Special case: if this field is a nested Struct, and 'value' is a
+        # tuple, then try to construct Struct instance fron 'value'
+        if (not self.seq and len(self.kind) == 1 and
+                isinstance(self.kind[0], type) and
+                issubclass(self.kind[0], Struct) and
+                isinstance(value, tuple)):
+            value = self.kind[0](*value)
+        
         self.check(inst, value)
         value = self.normalize(inst, value)
         super().__set__(inst, value)
