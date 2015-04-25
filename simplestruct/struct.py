@@ -265,7 +265,16 @@ class Struct(metaclass=MetaStruct):
         return (getattr(self, f.name) for f in self._struct)
     
     def __getitem__(self, index):
-        return getattr(self, self._struct[index].name)
+        # Indexing doesn't really make sense if you're thinking in terms of
+        # C-style structs, but we're mimicking features from
+        # collections.namedtuple, and the implementation is fairly trivial.
+        # Also allows one to more easily replace plain tuples with Struct in
+        # existing code.
+        if isinstance(index, slice):
+            return tuple(getattr(self, f.name)
+                         for f in self._struct.__getitem__(index))
+        else:
+            return getattr(self, self._struct[index].name)
     
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that

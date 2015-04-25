@@ -91,6 +91,11 @@ class StructCase(unittest.TestCase):
         f = Bar(5, (6, 7))
         self.assertEqual(f[0], 5)
         self.assertEqual(f[1], (6, 7))
+        self.assertEqual(f[0:2], (5, (6, 7)))
+        self.assertEqual(f[0:0], ())
+        self.assertEqual(f[0:2:2], (5,))
+        self.assertEqual(f[1:-1], ())
+        self.assertEqual(f[-1:10], ((6, 7),))
         with self.assertRaises(IndexError):
             f[2]
         
