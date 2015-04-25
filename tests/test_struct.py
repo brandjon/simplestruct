@@ -7,7 +7,7 @@ import pickle
 import copy
 
 from simplestruct.struct import *
-
+from simplestruct.fields import TypedField
 
 # Pickled types must be defined at module level.
 class PickleFoo(Struct):
@@ -83,6 +83,27 @@ class StructCase(unittest.TestCase):
         a, b = f
         self.assertEqual(len(f), 2)
         self.assertEqual((a, b), (1, 2))
+    
+    def test_indexing(self):
+        class Bar(Struct):
+            s = Field
+            q = Field
+        f = Bar(5, (6, 7))
+        self.assertEqual(f[0], 5)
+        self.assertEqual(f[1], (6, 7))
+        with self.assertRaises(IndexError):
+            f[2]
+        
+        class Foo(Struct):
+            b = TypedField(Bar)
+        f0 = Foo(f)
+        self.assertEqual(f0[0], f)
+        self.assertEqual(f0[0][0], 5)
+        self.assertEqual(f0[0][1], (6, 7))
+        with self.assertRaises(IndexError):
+            f0[1]
+        with self.assertRaises(IndexError):
+            f0[0][2]
     
     def test_construct(self):
         # Construction by keyword.

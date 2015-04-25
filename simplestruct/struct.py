@@ -264,6 +264,9 @@ class Struct(metaclass=MetaStruct):
     def __iter__(self):
         return (getattr(self, f.name) for f in self._struct)
     
+    def __getitem__(self, index):
+        return getattr(self, self._struct[index].name)
+    
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that
         # the metaclass's __call__() will still run. This is needed to
