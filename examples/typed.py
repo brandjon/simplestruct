@@ -108,3 +108,14 @@ class NullablePoint(Struct):
     z = myfield
 
 p = NullablePoint(1, 2.0, None)
+
+
+# Struct-typed fields can be coerced from tuple values.
+
+class Line(Struct):
+    a = TypedField(TypedPoint)
+    b = TypedField(TypedPoint)
+
+line1 = Line(TypedPoint(1, 2), TypedPoint(3, 4))
+line2 = Line((1, 2), (3, 4))
+assert line1 == line2

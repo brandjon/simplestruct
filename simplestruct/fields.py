@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 
-from .struct import Field
+from .struct import Field, Struct
 from .type import TypeChecker
 
 
@@ -22,6 +22,9 @@ class TypedField(Field, TypeChecker):
     determined by kind.__eq__()).
     
     If or_none is True, None is a valid value.
+    
+    If the kind is a Struct and seq is False, allow the value to
+    be a tuple and coerce it to an instance of the Struct.
     """
     
     def __init__(self, kind, *,
@@ -64,6 +67,15 @@ class TypedField(Field, TypeChecker):
         return value
     
     def __set__(self, inst, value):
+        # Special case: If our type is a non-sequence Struct, allow
+        # coercion of a tuple value to the Struct. This is done
+        # prior to the type check and normalization.
+        if (not self.seq and len(self.kind) == 1 and
+                isinstance(self.kind[0], type) and
+                issubclass(self.kind[0], Struct) and
+                isinstance(value, tuple)):
+            value = self.kind[0](*value)
+        
         self.check(inst, value)
         value = self.normalize(inst, value)
         super().__set__(inst, value)

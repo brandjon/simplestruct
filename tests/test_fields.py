@@ -40,5 +40,19 @@ class FieldsCase(unittest.TestCase):
             bar = TypedField(int, or_none=True)
         f1 = Foo(None)
 
+    def test_nestedstructs(self):
+        class Bar(Struct):
+            a = Field
+        class Foo(Struct):
+            b = Field
+            c = TypedField(Bar)
+        f = Foo(1, (2,))
+        self.assertEqual(f.c.a, 2)
+        self.assertEqual(f.b, 1)
+        with self.assertRaises(TypeError):
+            f = Foo(1, 2)
+        with self.assertRaises(TypeError):
+            f = Foo(1, (2, 3))
+
 if __name__ == '__main__':
     unittest.main()
