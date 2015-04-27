@@ -138,6 +138,7 @@ optional mutability | | ✗
 hashing (if immutable) | `__hash__()` | ✓
 pickling / deep-copying |  | ✓
 tuple decomposition | `__len__`, `__iter__` | ✓
+indexing | `__getitem__`, `__setitem__` | `__getitem__` only
 optional type checking | `__init__()`, `@property` | ✗
 `_asdict()` / `_replace()` | | ✓
 

@@ -1,0 +1,2 @@
+- Jon Brandvein - Author, maintainer
+- Bo Lin - Struct indexing, recursive construction from tuple

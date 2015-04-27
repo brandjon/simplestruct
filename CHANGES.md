@@ -2,6 +2,7 @@
 
 ## 0.2.2 (unreleased)
 
+- added support for `__getitem__` and `__setitem__`
 - testing a Struct for equality with itself succeeds quickly
 
 ## 0.2.1 (2014-12-20)

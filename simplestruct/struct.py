@@ -264,6 +264,26 @@ class Struct(metaclass=MetaStruct):
     def __iter__(self):
         return (getattr(self, f.name) for f in self._struct)
     
+    def __getitem__(self, index):
+        # Index may also be a slice.
+        return tuple(getattr(self, f.name) for f in self._struct)[index]
+    
+    def __setitem__(self, index, value):
+        if isinstance(index, slice):
+            fnames = [f.name for f in self._struct][index]
+            values = list(value)
+            if len(values) < len(fnames):
+                word = 'value' if len(values) == 1 else 'values'
+                raise ValueError('need more than {} {} to '
+                                 'unpack'.format(len(fnames), word))
+            elif len(values) > len(fnames):
+                raise ValueError('too many values to unpack (expected '
+                                 '{})'.format(len(fnames)))
+            for fname, v in zip(fnames, values):
+                setattr(self, fname, v)
+        else:
+            setattr(self, self._struct[index].name, value)
+    
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that
         # the metaclass's __call__() will still run. This is needed to
