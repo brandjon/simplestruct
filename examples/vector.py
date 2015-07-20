@@ -89,12 +89,13 @@ except TypeError as e:
 #
 # If the fields have default values, these are substituted in before
 # calling the constructor. Thus providing default parameter values
-# in the constructor argument list is meaningless.
+# in the constructor argument list is meaningless, as they will always
+# be overridden by the defaults from the field's declaration.
 
 class DoublingVector2D(Struct):
     
-    x = Field
-    y = Field
+    x = Field(default=0)
+    y = Field(default=0)
     
     def __new__(cls, x, y):
         print('Vector2D.__new__() has been called')

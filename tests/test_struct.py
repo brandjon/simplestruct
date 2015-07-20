@@ -133,10 +133,13 @@ class StructCase(unittest.TestCase):
         class Foo(Struct):
             a = Field()
             b = Field(default='b')
+            # Make sure default field values are passed to __init__() too.
+            def __init__(self, a, b):
+                self.c = b
         f = Foo(1, 2)
-        self.assertEqual((f.a, f.b), (1, 2))
+        self.assertEqual((f.a, f.b, f.c), (1, 2, 2))
         f = Foo(1)
-        self.assertEqual((f.a, f.b), (1, 'b'))
+        self.assertEqual((f.a, f.b, f.c), (1, 'b', 'b'))
         
         # Parentheses-less shorthand.
         class Foo(Struct):

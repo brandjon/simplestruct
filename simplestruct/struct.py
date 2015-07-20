@@ -95,6 +95,7 @@ class MetaStruct(type):
     
     Upon instantiation of a Struct subtype, set the instance's
     _initialized attribute to True after __init__() returns.
+    Preprocess its __new__/__init__() arguments as well.
     """
     
     # Use OrderedDict to preserve Field declaration order.
@@ -144,9 +145,23 @@ class MetaStruct(type):
         
         return cls
     
+    def get_boundargs(cls, *args, **kargs):
+        """Return an inspect.BoundArguments object for the application
+        of this Struct's signature to its arguments. Add missing values
+        for default fields as keyword arguments.
+        """
+        boundargs = cls._signature.bind(*args, **kargs)
+        # Include default arguments.
+        for param in cls._signature.parameters.values():
+            if (param.name not in boundargs.arguments and
+                param.default is not param.empty):
+                boundargs.arguments[param.name] = param.default
+        return boundargs
+    
     # Mark the class as _initialized after construction.
     def __call__(cls, *args, **kargs):
-        inst = super().__call__(*args, **kargs)
+        boundargs = cls.get_boundargs(*args, **kargs)
+        inst = super().__call__(*boundargs.args, **boundargs.kwargs)
         inst._initialized = True
         return inst
 
@@ -193,12 +208,7 @@ class Struct(metaclass=MetaStruct):
         
         f = None
         try:
-            boundargs = cls._signature.bind(*args, **kargs)
-            # Include default arguments.
-            for param in cls._signature.parameters.values():
-                if (param.name not in boundargs.arguments and
-                    param.default is not param.empty):
-                    boundargs.arguments[param.name] = param.default
+            boundargs = cls.get_boundargs(*args, **kargs)
             for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
             f = None

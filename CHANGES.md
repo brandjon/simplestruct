@@ -2,6 +2,7 @@
 
 ## 0.2.2 (unreleased)
 
+- fields with default values are properly passed to __new__()/__init__()
 - added support for coercion of tuples for Struct-typed fields
 - added support for `__getitem__` and `__setitem__`
 - testing a Struct for equality with itself succeeds quickly
