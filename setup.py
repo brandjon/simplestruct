@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name =          'SimpleStruct',
-    version =       '0.2.2-dev',
+    version =       '0.2.3-dev',
     url =           'https://github.com/brandjon/simplestruct',
     
     author =        'Jon Brandvein',
