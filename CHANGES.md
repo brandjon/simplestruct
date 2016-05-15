@@ -1,6 +1,6 @@
 # Release notes
 
-## 0.2.2 (unreleased)
+## 0.2.2 (2016-05-15)
 
 - fields with default values are properly passed to __new__()/__init__()
 - added support for coercion of tuples for Struct-typed fields
