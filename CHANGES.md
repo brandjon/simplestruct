@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.2.2 (2016-05-15)
+
+- fields with default values are properly passed to __new__()/__init__()
+- added support for coercion of tuples for Struct-typed fields
+- added support for `__getitem__` and `__setitem__`
+- testing a Struct for equality with itself succeeds quickly
+
 ## 0.2.1 (2014-12-20)
 
 - changed type checking keyword argument names: `opt` -> `or_none`

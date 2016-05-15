@@ -84,6 +84,38 @@ class StructCase(unittest.TestCase):
         self.assertEqual(len(f), 2)
         self.assertEqual((a, b), (1, 2))
     
+    def test_indexing(self):
+        class Bar(Struct):
+            a = Field
+            b = Field
+        f = Bar(5, 6)
+        self.assertEqual(f[0], 5)
+        self.assertEqual(f[1], 6)
+        self.assertEqual(f[0:2], (5, 6))
+        self.assertEqual(f[0:0], ())
+        self.assertEqual(f[0:2:2], (5,))
+        self.assertEqual(f[1:-1], ())
+        self.assertEqual(f[-1:10], (6,))
+        with self.assertRaises(IndexError):
+            f[2]
+        with self.assertRaises(AttributeError):
+            f[0] = 4
+        
+        class Bar(Struct):
+            _immutable = False
+            a = Field()
+            b = Field()
+        f = Bar(5, 6)
+        f[0] = 4
+        self.assertEqual(f.a, 4)
+        f[::-1] = (1, 2)
+        self.assertEqual(f.a, 2)
+        self.assertEqual(f.b, 1)
+        with self.assertRaises(ValueError):
+            f[:] = (1,)
+        with self.assertRaises(ValueError):
+            f[:] = (1, 2, 3)
+    
     def test_construct(self):
         # Construction by keyword.
         class Foo(Struct):
@@ -101,10 +133,13 @@ class StructCase(unittest.TestCase):
         class Foo(Struct):
             a = Field()
             b = Field(default='b')
+            # Make sure default field values are passed to __init__() too.
+            def __init__(self, a, b):
+                self.c = b
         f = Foo(1, 2)
-        self.assertEqual((f.a, f.b), (1, 2))
+        self.assertEqual((f.a, f.b, f.c), (1, 2, 2))
         f = Foo(1)
-        self.assertEqual((f.a, f.b), (1, 'b'))
+        self.assertEqual((f.a, f.b, f.c), (1, 'b', 'b'))
         
         # Parentheses-less shorthand.
         class Foo(Struct):

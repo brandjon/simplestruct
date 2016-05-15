@@ -95,11 +95,12 @@ class MetaStruct(type):
     
     Upon instantiation of a Struct subtype, set the instance's
     _initialized attribute to True after __init__() returns.
+    Preprocess its __new__/__init__() arguments as well.
     """
     
     # Use OrderedDict to preserve Field declaration order.
     @classmethod
-    def __prepare__(mcls, name, bases, **kargs):
+    def __prepare__(cls, name, bases, **kargs):
         return OrderedDict()
     
     # Construct the _struct attribute on the new class.
@@ -144,9 +145,23 @@ class MetaStruct(type):
         
         return cls
     
+    def get_boundargs(cls, *args, **kargs):
+        """Return an inspect.BoundArguments object for the application
+        of this Struct's signature to its arguments. Add missing values
+        for default fields as keyword arguments.
+        """
+        boundargs = cls._signature.bind(*args, **kargs)
+        # Include default arguments.
+        for param in cls._signature.parameters.values():
+            if (param.name not in boundargs.arguments and
+                param.default is not param.empty):
+                boundargs.arguments[param.name] = param.default
+        return boundargs
+    
     # Mark the class as _initialized after construction.
-    def __call__(mcls, *args, **kargs):
-        inst = super().__call__(*args, **kargs)
+    def __call__(cls, *args, **kargs):
+        boundargs = cls.get_boundargs(*args, **kargs)
+        inst = super().__call__(*boundargs.args, **boundargs.kwargs)
         inst._initialized = True
         return inst
 
@@ -193,12 +208,7 @@ class Struct(metaclass=MetaStruct):
         
         f = None
         try:
-            boundargs = cls._signature.bind(*args, **kargs)
-            # Include default arguments.
-            for param in cls._signature.parameters.values():
-                if (param.name not in boundargs.arguments and
-                    param.default is not param.empty):
-                    boundargs.arguments[param.name] = param.default
+            boundargs = cls.get_boundargs(*args, **kargs)
             for f in cls._struct:
                 setattr(inst, f.name, boundargs.arguments[f.name])
             f = None
@@ -231,6 +241,13 @@ class Struct(metaclass=MetaStruct):
         return self._fmt_helper(repr)
     
     def __eq__(self, other):
+        # Succeed immediately if we're being tested against ourselves
+        # (identical object in memory). This avoids an unnecessary
+        # walk over the fields, which can be expensive if the field
+        # values are themselves Structs, and so on.
+        if self is other:
+            return True
+        
         # Two struct instances are equal if they have the same
         # type and same field values.
         if type(self) != type(other):
@@ -256,6 +273,26 @@ class Struct(metaclass=MetaStruct):
     
     def __iter__(self):
         return (getattr(self, f.name) for f in self._struct)
+    
+    def __getitem__(self, index):
+        # Index may also be a slice.
+        return tuple(getattr(self, f.name) for f in self._struct)[index]
+    
+    def __setitem__(self, index, value):
+        if isinstance(index, slice):
+            fnames = [f.name for f in self._struct][index]
+            values = list(value)
+            if len(values) < len(fnames):
+                word = 'value' if len(values) == 1 else 'values'
+                raise ValueError('need more than {} {} to '
+                                 'unpack'.format(len(fnames), word))
+            elif len(values) > len(fnames):
+                raise ValueError('too many values to unpack (expected '
+                                 '{})'.format(len(fnames)))
+            for fname, v in zip(fnames, values):
+                setattr(self, fname, v)
+        else:
+            setattr(self, self._struct[index].name, value)
     
     def __reduce_ex__(self, protocol):
         # We use __reduce_ex__() rather than __getnewargs__() so that

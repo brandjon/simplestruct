@@ -83,18 +83,19 @@ except TypeError as e:
 # The arguments are the declared fields, in order of their declaration.
 #
 # Fields are initialized in __new__(). A subclass that overrides
-# __new__() must call super.__new__() (not type.__new__()).
+# __new__() must call super().__new__() (not type.__new__()).
 # __init__() does not need to call super().__init__() or do any work
 # on behalf of the Struct system.
 #
 # If the fields have default values, these are substituted in before
 # calling the constructor. Thus providing default parameter values
-# in the constructor argument list is meaningless.
+# in the constructor argument list is meaningless, as they will always
+# be overridden by the defaults from the field's declaration.
 
 class DoublingVector2D(Struct):
     
-    x = Field
-    y = Field
+    x = Field(default=0)
+    y = Field(default=0)
     
     def __new__(cls, x, y):
         print('Vector2D.__new__() has been called')

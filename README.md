@@ -1,4 +1,4 @@
-# SimpleStruct
+# SimpleStruct #
 
 *(Supports Python 3.3 and up)*
 
@@ -9,7 +9,7 @@ inheritance-based approach instead of `eval()`ing a code template. If
 you like using `namedtuple` classes but wish they were more composable
 and extensible, this project is for you.
 
-## Example
+## Example ##
 
 Writing struct classes by hand is tedious and error prone. Consider a
 simple point class. The bare minimum we can write in Python is
@@ -93,7 +93,7 @@ File | Purpose
 [vector.py](examples/vector.py) | advanced features
 [abstract.py](examples/abstract.py) | mixing structs and metaclasses
 
-## Comparison and feature matrix
+## Comparison and feature matrix ##
 
 The most important problems mentioned above are solved by using
 `namedtuple`, but this approach begins to break down when you
@@ -114,7 +114,7 @@ the boilerplate methods so they recognize the new fields. This can be
 done using multiple inheritance:
 
 ```python
-BaseEmployee = namedtuple('BaseEmployee', Employee._fields + ('salary',))
+BaseEmployee = namedtuple('BaseEmployee', BasePerson._fields + ('salary',))
 class Employee(BaseEmployee, Person):
     pass
 ```
@@ -138,16 +138,17 @@ optional mutability | | ✗
 hashing (if immutable) | `__hash__()` | ✓
 pickling / deep-copying |  | ✓
 tuple decomposition | `__len__`, `__iter__` | ✓
+indexing | `__getitem__`, `__setitem__` | `__getitem__` only
 optional type checking | `__init__()`, `@property` | ✗
 `_asdict()` / `_replace()` | | ✓
 
-[MacroPy][2]'s case classes provide similar functionality, but is
+[MacroPy][2]'s "case classes" provide similar functionality, but are
 implemented in a very different way. Instead of metaclass hacking
-or source code templating, it relies on syntactic transformation
+or source code templating, MacroPy relies on syntactic transformation
 of the module's AST. This allows for a syntax that's very different
 from what we've seen above. So different, in fact, that we might view
 MacroPy as an extension to the Python language rather than as just
-a library. MacroPy case classes are subject to limitations on
+a library. Case classes are subject to limitations on
 inheritance and class members.
 
 ## Installation ##
